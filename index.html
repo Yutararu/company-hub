@@ -1141,7 +1141,7 @@
     </main>
   </div>
 
-  <!-- Firebase Auth & Firestore 連携モジュール -->
+<!-- Firebase Auth & Firestore 連携モジュール -->
   <script type="module">
     const firebaseConfig = {
       apiKey: "AIzaSyAZIE0U5a5QIbmIta2v4AcE18KAOb2iYZU",
@@ -1166,7 +1166,8 @@
       allUsers: []
     };
 
-    async function initFirebase() {
+    // 初期化完了を待機するためのPromise
+    window.firebaseReadyPromise = (async function initFirebase() {
       try {
         const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
         const {
@@ -1178,7 +1179,7 @@
           getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
           onSnapshot, query, where, orderBy
         } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-        
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -1260,13 +1261,10 @@
         });
       } catch (e) {
         console.error("Firebase初期化エラー:", e);
+        window.fbInitError = e.message;
       }
-    }
-
-    initFirebase();
+    })();
   </script>
-
-  <script>
     // ================= 起動アニメーション制御 =================
     document.addEventListener('DOMContentLoaded', () => {
       const splashScreen = document.getElementById('splash-screen');
@@ -1535,7 +1533,13 @@
         return;
       }
 
-      try {
+     try {
+        // ★ ここに挿入（1つ目：新規登録）
+        if (window.firebaseReadyPromise) await window.firebaseReadyPromise;
+        if (!window.fbModules) {
+          throw new Error(window.fbInitError || 'Firebaseの読み込みに失敗しました。通信環境を確認して再読み込みしてください。');
+        }
+
         const { auth, db, createUserWithEmailAndPassword, updateProfile, doc, setDoc, collection, query, where, getDocs } = window.fbModules;
 
         const dupQuery = query(collection(db, "users"), where("username", "==", username));
@@ -1579,6 +1583,12 @@
       }
 
       try {
+        // ★ ここに挿入（2つ目：ログイン）
+        if (window.firebaseReadyPromise) await window.firebaseReadyPromise;
+        if (!window.fbModules) {
+          throw new Error(window.fbInitError || 'Firebaseの読み込みに失敗しました。通信環境を確認して再読み込みしてください。');
+        }
+
         const { auth, db, signInWithEmailAndPassword, collection, query, where, getDocs } = window.fbModules;
 
         let targetDummyEmail = `${username}${window.DUMMY_DOMAIN}`;

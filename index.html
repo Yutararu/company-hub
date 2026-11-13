@@ -1174,20 +1174,16 @@
           onAuthStateChanged, updateProfile, updateEmail, updatePassword,
           EmailAuthProvider, reauthenticateWithCredential
         } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
-        const {
-          getFirestore, collection, doc, setDoc, getDoc, addDoc, updateDoc, deleteDoc,
-          onSnapshot, query, orderBy
+const {
+          getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
+          onSnapshot, query, where, orderBy
         } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-        
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
 
         window.fbModules = {
           auth, db,
           createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
           updateProfile, updateEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential,
-          collection, doc, setDoc, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy
+          collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy
         };
 
         let unsubscribeSheets = null;
@@ -1196,7 +1192,7 @@
 
         onAuthStateChanged(auth, async (user) => {
           if (user) {
-            const username = user.email.replace(window.DUMMY_DOMAIN, '');
+            let username = user.displayName || user.email.replace(window.DUMMY_DOMAIN, '');
             let schoolEmail = '';
             let isFrozen = false;
 
@@ -1204,6 +1200,7 @@
               const userSnap = await getDoc(doc(db, "users", user.uid));
               if (userSnap.exists()) {
                 const uData = userSnap.data();
+                username = uData.username || username;
                 schoolEmail = uData.schoolEmail || '';
                 isFrozen = Boolean(uData.isFrozen);
               }
@@ -1406,24 +1403,29 @@
         return;
       }
 
-      const newDummyEmail = `${newUsername}${window.DUMMY_DOMAIN}`;
-
-      try {
+try {
         const {
           auth, db, EmailAuthProvider, reauthenticateWithCredential,
-          updateEmail, updateProfile, doc, updateDoc
+          updateProfile, doc, updateDoc, collection, query, where, getDocs
         } = window.fbModules;
 
+        // 重複チェック
+        const dupQuery = query(collection(db, "users"), where("username", "==", newUsername));
+        const dupSnap = await getDocs(dupQuery);
+        if (!dupSnap.empty) {
+          showSettingsError('このユーザーネームは既に他の人に使用されています。別の名前をお試しください。');
+          return;
+        }
+
+        // 本人確認（現在のパスワードチェック）
         const fbUser = auth.currentUser;
         const credential = EmailAuthProvider.credential(fbUser.email, currentPassword);
         await reauthenticateWithCredential(fbUser, credential);
 
-        await updateEmail(fbUser, newDummyEmail);
+        // 表示名とFirestoreのユーザー情報を更新（updateEmailは呼ばない）
         await updateProfile(fbUser, { displayName: newUsername });
-
         await updateDoc(doc(db, "users", user.uid), {
-          username: newUsername,
-          dummyEmail: newDummyEmail
+          username: newUsername
         });
 
         // 自分が関連する会社データ内の名前も自動更新
@@ -1568,11 +1570,18 @@
         return;
       }
 
-      const dummyEmail = `${username}${window.DUMMY_DOMAIN}`;
-
       try {
-        const { auth, signInWithEmailAndPassword } = window.fbModules;
-        await signInWithEmailAndPassword(auth, dummyEmail, password);
+        const { auth, db, signInWithEmailAndPassword, collection, query, where, getDocs } = window.fbModules;
+        
+        // Firestoreから現在のユーザーネームに一致するアカウントの内部メールを検索
+        let targetDummyEmail = `${username}${window.DUMMY_DOMAIN}`;
+        const q = query(collection(db, "users"), where("username", "==", username));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          targetDummyEmail = snap.docs[0].data().dummyEmail || targetDummyEmail;
+        }
+
+        await signInWithEmailAndPassword(auth, targetDummyEmail, password);
       } catch (err) {
         showError('login-error', 'ユーザーネームまたはパスワードが間違っています。');
       }

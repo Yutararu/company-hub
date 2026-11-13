@@ -2152,6 +2152,31 @@
               </div>
             `).join('');
 
+        // 管理者向け：登録済み会社（申請中を含む）一覧
+        const allCompanies = window.appState.sharedSheets;
+        const allCompaniesHtml = allCompanies.length === 0
+          ? `<div class="note-box">登録されている会社はありません。</div>`
+          : allCompanies.map(company => {
+              const statusLabel = company.status === 'pending' ? '審査待ち' : '公開中';
+              const statusClass = company.status === 'pending' ? 'status-pending' : 'status-open';
+              return `
+                <div class="shared-item">
+                  <div class="shared-item-header">
+                    <strong>${escapeHtml(company.companyName || '名称未設定')}</strong>
+                    <span class="status-pill ${statusClass}">${statusLabel}</span>
+                  </div>
+                  <div style="font-size:13px; color:#cbd5e1; line-height:1.6; margin-bottom:10px;">
+                    社長名: ${escapeHtml(company.presidentName || '不明')}<br>
+                    設立申請者: ${escapeHtml(company.createdBy || '不明')}<br>
+                    社員数: ${escapeHtml(company.members || 1)}名 / 最大 ${escapeHtml(company.maxMembers || company.members || 1)}名
+                  </div>
+                  <button class="btn-cyber-danger-sm" onclick="adminDeleteCompany('${company.id}')">
+                    この会社を削除する
+                  </button>
+                </div>
+              `;
+            }).join('');
+
         const usersList = window.appState.allUsers;
         const usersRows = usersList.length === 0
           ? `<tr><td colspan="4" style="text-align:center; color:#94a3b8;">登録ユーザーがいません。</td></tr>`
@@ -2199,6 +2224,10 @@
                 <tbody>${usersRows}</tbody>
               </table>
             </div>
+          `) +
+          wrapCard('ADMIN // COMPANY CONTROL', 'badge-red', `会社管理・削除（${allCompanies.length}件）`, `
+            <div class="note-box">※ 会社を削除すると会社一覧からも消えます。この操作は取り消せません。申請中・公開中の会社が対象です。</div>
+            ${allCompaniesHtml}
           `);
       }
     }
@@ -2331,6 +2360,31 @@
         alert(`「${companyName}」の申請を拒否しました。`);
       } catch (e) {
         alert("拒否処理エラー: " + e.message);
+      }
+    }
+
+    // 管理者専用の会社削除
+    async function adminDeleteCompany(sheetId) {
+      if (!isAdminUser()) {
+        alert("この操作は管理者専用です。");
+        return;
+      }
+
+      const company = window.appState.sharedSheets.find(s => s.id === sheetId);
+      if (!company) {
+        alert("会社データが見つかりません。画面を更新してください。");
+        return;
+      }
+
+      const companyName = company.companyName || "名称未設定";
+      if (!confirm(`本当に「${companyName}」を削除しますか？\\nこの操作は取り消せません。`)) return;
+
+      try {
+        const { db, doc, deleteDoc } = window.fbModules;
+        await deleteDoc(doc(db, "establishment_sheets", sheetId));
+        alert(`「${companyName}」を削除しました。`);
+      } catch (e) {
+        alert("会社削除エラー: " + e.message);
       }
     }
 

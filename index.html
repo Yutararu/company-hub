@@ -1585,7 +1585,6 @@
       }
 
       try {
-        // ★ ここに挿入（2つ目：ログイン）
         if (window.firebaseReadyPromise) await window.firebaseReadyPromise;
         if (!window.fbModules) {
           throw new Error(window.fbInitError || 'Firebaseの読み込みに失敗しました。通信環境を確認して再読み込みしてください。');
@@ -1593,16 +1592,35 @@
 
         const { auth, db, signInWithEmailAndPassword, collection, query, where, getDocs } = window.fbModules;
 
-        let targetDummyEmail = `${username}${window.DUMMY_DOMAIN}`;
-        const q = query(collection(db, "users"), where("username", "==", username));
-        const snap = await getDocs(q);
-        if (!snap.empty) {
-          targetDummyEmail = snap.docs[0].data().dummyEmail || targetDummyEmail;
-        }
+        // 新規登録時に生成するメールアドレスを最初に試す。
+        // Firestoreに古いユーザー情報が残っていても、通常のログインを妨げない。
+        const canonicalEmail = `${username}${window.DUMMY_DOMAIN}`.toLowerCase();
+        try {
+          await signInWithEmailAndPassword(auth, canonicalEmail, password);
+          return;
+        } catch (primaryError) {
+          // 旧データでdummyEmailが異なる場合だけ、Firestoreの登録値を確認する。
+          const q = query(collection(db, "users"), where("username", "==", username));
+          const snap = await getDocs(q);
+          const fallbackEmails = [...new Set(
+            snap.docs
+              .map(d => (d.data().dummyEmail || '').trim().toLowerCase())
+              .filter(email => email && email !== canonicalEmail)
+          )];
 
-        await signInWithEmailAndPassword(auth, targetDummyEmail, password);
+          for (const fallbackEmail of fallbackEmails) {
+            try {
+              await signInWithEmailAndPassword(auth, fallbackEmail, password);
+              return;
+            } catch (fallbackError) {
+              console.warn("予備ログイン候補に失敗:", fallbackEmail, fallbackError.code || fallbackError.message);
+            }
+          }
+          throw primaryError;
+        }
       } catch (err) {
-        showError('login-error', 'ユーザーネームまたはパスワードが間違っています。');
+        console.error("ログイン処理の詳細エラー:", err.code || err.name, err.message);
+        showError('login-error', 'ログインできませんでした。ユーザーネーム・パスワードを確認してください。詳細はブラウザのコンソールに記録されています。');
       }
     }
 
@@ -2179,14 +2197,19 @@
 
         const usersList = window.appState.allUsers;
         const usersRows = usersList.length === 0
-          ? `<tr><td colspan="4" style="text-align:center; color:#94a3b8;">登録ユーザーがいません。</td></tr>`
+          ? `<tr><td colspan="5" style="text-align:center; color:#94a3b8;">登録ユーザーがいません。</td></tr>`
           : usersList.map(u => {
               const isTargetAdmin = window.ADMIN_EMAILS.includes(u.schoolEmail || '');
+              const isCurrentUser = u.uid === window.appState.currentUser?.uid;
               const frozen = Boolean(u.isFrozen);
               return `
                 <tr>
-                  <td><strong>${escapeHtml(u.username)}</strong></td>
+                  <td><strong>${escapeHtml(u.username || '(名前なし)')}</strong></td>
                   <td style="font-size:12px;">${escapeHtml(u.schoolEmail || '-')}</td>
+                  <td style="font-size:10px; color:#94a3b8; word-break:break-all;">
+                    UID: ${escapeHtml(u.uid)}<br>
+                    ${escapeHtml(u.dummyEmail || '')}
+                  </td>
                   <td>
                     <span class="status-pill ${frozen ? 'status-closed' : 'status-open'}">
                       ${frozen ? '凍結中' : '有効'}
@@ -2195,9 +2218,15 @@
                   <td>
                     ${isTargetAdmin
                       ? '<span style="font-size:11px; color:#94a3b8;">管理者アカウント</span>'
-                      : `<button class="${frozen ? 'btn-cyber-success' : 'btn-cyber-danger-sm'}" onclick="toggleUserFreeze('${u.uid}', ${!frozen}, '${escapeHtml(u.username)}')">
-                          ${frozen ? '凍結を解除' : 'アカウント凍結'}
-                        </button>`
+                      : `<div style="display:flex; flex-direction:column; gap:6px; align-items:flex-start;">
+                          <button class="${frozen ? 'btn-cyber-success' : 'btn-cyber-danger-sm'}" onclick="toggleUserFreeze('${u.uid}', ${!frozen}, '${escapeHtml(u.username || '')}')">
+                            ${frozen ? '凍結を解除' : 'アカウント凍結'}
+                          </button>
+                          ${isCurrentUser
+                            ? '<span style="font-size:10px; color:#94a3b8;">ログイン中のアカウント</span>'
+                            : `<button class="btn-cyber-danger-sm" onclick="adminDeleteUserProfile('${u.uid}', '${escapeHtml(u.username || '')}', '${escapeHtml(u.dummyEmail || '')}')">古いユーザー情報を削除</button>`
+                          }
+                        </div>`
                     }
                   </td>
                 </tr>
@@ -2210,13 +2239,14 @@
             ${appsHtml}
           `) +
           wrapCard('ADMIN // USER CONTROL', 'badge-red', '登録アカウント管理（凍結・解除）', `
-            <div class="note-box">※ 凍結されたアカウントはログインおよびシステム利用が即座に停止されます。</div>
+            <div class="note-box">※ 凍結されたアカウントはログインおよびシステム利用が即座に停止されます。古いユーザー情報の削除はFirestoreのusers情報のみが対象で、Firebase Authenticationのアカウント自体は削除しません。UIDとログイン用メールを確認してから実行してください。</div>
             <div style="overflow-x:auto;">
               <table>
                 <thead>
                   <tr>
                     <th>ユーザーネーム</th>
                     <th>学校メール</th>
+                    <th>識別情報（UID / ログイン用メール）</th>
                     <th>状態</th>
                     <th>操作</th>
                   </tr>
@@ -2400,6 +2430,41 @@
         alert(`ユーザー「${username}」を${actionLabel}しました。`);
       } catch (e) {
         alert("アカウント操作エラー: " + e.message);
+      }
+    }
+
+    // 管理者専用：Firestoreに残った古いユーザー情報だけを削除
+    async function adminDeleteUserProfile(targetUid, username, dummyEmail) {
+      if (!isAdminUser()) {
+        alert("この操作は管理者専用です。");
+        return;
+      }
+      if (!targetUid || targetUid === window.appState.currentUser?.uid) {
+        alert("ログイン中のアカウントは削除できません。");
+        return;
+      }
+      if (window.ADMIN_EMAILS.includes(
+        (window.appState.allUsers.find(u => u.uid === targetUid)?.schoolEmail || '')
+      )) {
+        alert("管理者アカウントのユーザー情報は削除できません。");
+        return;
+      }
+
+      const confirmed = confirm(
+        `Firestoreに保存されたユーザー情報を削除します。\n\n` +
+        `ユーザー名: ${username}\nUID: ${targetUid}\nログイン用メール: ${dummyEmail || '(登録なし)'}\n\n` +
+        `※ Firebase Authenticationのアカウント自体は削除されません。\n` +
+        `※ この操作は取り消せません。UIDを確認して続行してください。`
+      );
+      if (!confirmed) return;
+
+      try {
+        const { db, doc, deleteDoc } = window.fbModules;
+        await deleteDoc(doc(db, "users", targetUid));
+        alert(`「${username}」のFirestoreユーザー情報を削除しました。\nAuthenticationのアカウントは変更していません。`);
+      } catch (e) {
+        console.error("ユーザー情報削除エラー:", e);
+        alert("ユーザー情報の削除に失敗しました: " + e.message);
       }
     }
 

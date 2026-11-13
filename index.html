@@ -233,7 +233,7 @@
     .gateway-panel {
       width: 100%;
       max-width: 460px;
-      background: rgba(30, 41, 59, 0.9);
+      background: rgba(30, 41, 59, 0.92);
       border: 1px solid #334155;
       border-radius: 22px;
       padding: 36px 32px;
@@ -405,6 +405,18 @@
       line-height: 1.5;
     }
 
+    .success-msg {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #6ee7b7;
+      font-size: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      margin-bottom: 14px;
+      display: none;
+      line-height: 1.5;
+    }
+
     .back-link {
       display: inline-block;
       margin-top: 16px;
@@ -414,6 +426,76 @@
       text-decoration: underline;
     }
     .back-link:hover { color: #38bdf8; }
+
+    /* ================= アカウント設定モーダル ================= */
+    #account-settings-modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      z-index: 100;
+      background: rgba(2, 6, 23, 0.82);
+      backdrop-filter: blur(8px);
+      overflow-y: auto;
+    }
+
+    #account-settings-modal.active {
+      display: flex;
+    }
+
+    .settings-modal-panel {
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: rgba(30, 41, 59, 0.96);
+      border: 1px solid #38bdf8;
+      border-radius: 22px;
+      padding: 28px 26px;
+      position: relative;
+      box-shadow: 0 0 40px rgba(56, 189, 248, 0.25), 0 20px 50px rgba(0, 0, 0, 0.7);
+      text-align: left;
+    }
+
+    .modal-close-btn {
+      position: absolute;
+      top: 18px;
+      right: 20px;
+      background: rgba(148, 163, 184, 0.15);
+      border: 1px solid #475569;
+      color: #cbd5e1;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.2s;
+    }
+    .modal-close-btn:hover {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: #f87171;
+      color: #ffffff;
+    }
+
+    .settings-section-box {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .settings-section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #38bdf8;
+      margin-bottom: 12px;
+    }
 
     /* ================= 3. メインアプリ画面 ================= */
     #app-viewport {
@@ -499,20 +581,21 @@
       animation: sysPulse 2s infinite;
     }
 
-    .logout-btn {
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid rgba(239, 68, 68, 0.4);
-      color: #fca5a5;
-      padding: 4px 12px;
+    .account-settings-btn {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      color: #7dd3fc;
+      padding: 5px 14px;
       border-radius: 16px;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 700;
       cursor: pointer;
       transition: 0.2s;
     }
-    .logout-btn:hover {
-      background: rgba(239, 68, 68, 0.3);
+    .account-settings-btn:hover {
+      background: rgba(56, 189, 248, 0.3);
       color: #ffffff;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
     }
 
     .digital-clock { color: #94a3b8; }
@@ -971,6 +1054,54 @@
     </div>
   </div>
 
+  <!-- アカウント設定モーダル -->
+  <div id="account-settings-modal">
+    <div class="settings-modal-panel">
+      <button class="modal-close-btn" onclick="closeAccountSettings()" title="閉じる">×</button>
+      <div class="gateway-badge" style="margin-bottom:10px;">ACCOUNT SETTINGS</div>
+      <h2 style="font-size:20px; margin-bottom:6px;">アカウント設定</h2>
+      <p style="font-size:12px; color:#94a3b8; margin-bottom:16px;" id="settings-account-summary">
+        登録メール: -
+      </p>
+
+      <div class="error-msg" id="settings-error"></div>
+      <div class="success-msg" id="settings-success"></div>
+
+      <!-- ユーザーネーム変更 -->
+      <div class="settings-section-box">
+        <div class="settings-section-title">1. ユーザーネームの変更</div>
+        <div class="form-group">
+          <label>新しいユーザーネーム（半角英数字・記号 _ - ）</label>
+          <input type="text" id="settings-new-username" placeholder="新しいユーザーネーム">
+        </div>
+        <div class="form-group">
+          <label>現在のパスワード（本人確認用）</label>
+          <input type="password" id="settings-username-password" placeholder="現在のパスワードを入力">
+        </div>
+        <button class="btn-cyber-primary" style="padding:11px;" onclick="handleChangeUsername()">ユーザーネームを変更する</button>
+      </div>
+
+      <!-- パスワード変更 -->
+      <div class="settings-section-box">
+        <div class="settings-section-title">2. パスワードの変更</div>
+        <div class="form-group">
+          <label>現在のパスワード</label>
+          <input type="password" id="settings-current-password" placeholder="現在のパスワード">
+        </div>
+        <div class="form-group">
+          <label>新しいパスワード（6文字以上）</label>
+          <input type="password" id="settings-new-password" placeholder="6文字以上の新しいパスワード">
+        </div>
+        <button class="btn-cyber-outline" style="padding:11px;" onclick="handleChangePassword()">パスワードを変更する</button>
+      </div>
+
+      <!-- ログアウト -->
+      <div style="margin-top:14px;">
+        <button class="btn-cyber-danger" onclick="handleLogout()">ログアウト（LOGOUT）</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 3. メイン画面 -->
   <div id="app-viewport">
     <header>
@@ -985,7 +1116,7 @@
           <span id="current-user-badge">USER: GUEST</span>
         </div>
         <div class="digital-clock" id="digital-clock">00:00:00</div>
-        <button class="logout-btn" onclick="handleLogout()">LOGOUT</button>
+        <button class="account-settings-btn" onclick="openAccountSettings()">アカウント設定</button>
       </div>
     </header>
 
@@ -1022,7 +1153,6 @@
     };
 
     window.DUMMY_DOMAIN = "@company-hub.local";
-    // 管理者権限を持つメールアドレス一覧
     window.ADMIN_EMAILS = [
       "2020018@seto-solan.ed.jp",
       "2020007@seto-solan.ed.jp"
@@ -1039,8 +1169,15 @@
     async function initFirebase() {
       try {
         const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
-        const { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
-        const { getFirestore, collection, doc, setDoc, getDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+        const {
+          getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
+          onAuthStateChanged, updateProfile, updateEmail, updatePassword,
+          EmailAuthProvider, reauthenticateWithCredential
+        } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
+        const {
+          getFirestore, collection, doc, setDoc, getDoc, addDoc, updateDoc, deleteDoc,
+          onSnapshot, query, orderBy
+        } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
         
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -1048,7 +1185,8 @@
 
         window.fbModules = {
           auth, db,
-          createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile,
+          createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
+          updateProfile, updateEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential,
           collection, doc, setDoc, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy
         };
 
@@ -1073,7 +1211,6 @@
               console.warn("ユーザー情報取得:", e);
             }
 
-            // 凍結チェック（管理者は除外）
             if (isFrozen && !window.ADMIN_EMAILS.includes(schoolEmail)) {
               await signOut(auth);
               showAuthForm('login');
@@ -1083,7 +1220,6 @@
 
             window.enterMainApp({ username, schoolEmail, dummyEmail: user.email, uid: user.uid });
 
-            // 自分自身の凍結状態をリアルタイム監視
             if (!unsubscribeMyUserDoc) {
               unsubscribeMyUserDoc = onSnapshot(doc(db, "users", user.uid), async (snap) => {
                 if (snap.exists()) {
@@ -1206,6 +1342,172 @@
       el.style.display = 'block';
     }
 
+    // ================= アカウント設定モーダル制御 =================
+    function openAccountSettings() {
+      const user = window.appState.currentUser;
+      if (!user) return;
+      clearSettingsMessages();
+      document.getElementById('settings-account-summary').textContent =
+        `現在のユーザーネーム: ${user.username} / 登録メール: ${user.schoolEmail || '-'}`;
+      document.getElementById('settings-new-username').value = user.username;
+      document.getElementById('settings-username-password').value = '';
+      document.getElementById('settings-current-password').value = '';
+      document.getElementById('settings-new-password').value = '';
+      document.getElementById('account-settings-modal').classList.add('active');
+    }
+
+    function closeAccountSettings() {
+      document.getElementById('account-settings-modal').classList.remove('active');
+    }
+
+    function clearSettingsMessages() {
+      document.getElementById('settings-error').style.display = 'none';
+      document.getElementById('settings-success').style.display = 'none';
+    }
+
+    function showSettingsError(msg) {
+      const errEl = document.getElementById('settings-error');
+      const okEl = document.getElementById('settings-success');
+      okEl.style.display = 'none';
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+    }
+
+    function showSettingsSuccess(msg) {
+      const errEl = document.getElementById('settings-error');
+      const okEl = document.getElementById('settings-success');
+      errEl.style.display = 'none';
+      okEl.textContent = msg;
+      okEl.style.display = 'block';
+    }
+
+    // ユーザーネーム変更
+    async function handleChangeUsername() {
+      clearSettingsMessages();
+      const user = window.appState.currentUser;
+      if (!user) return;
+
+      const newUsername = document.getElementById('settings-new-username').value.trim();
+      const currentPassword = document.getElementById('settings-username-password').value;
+
+      if (newUsername === user.username) {
+        showSettingsError('現在と同じユーザーネームです。新しいユーザーネームを入力してください。');
+        return;
+      }
+
+      const usernameRegex = /^[a-zA-Z0-9._-]{3,20}$/;
+      if (!usernameRegex.test(newUsername)) {
+        showSettingsError('ユーザーネームは3〜20文字の半角英数字・記号（._-）で入力してください。');
+        return;
+      }
+
+      if (!currentPassword) {
+        showSettingsError('本人確認のため現在のパスワードを入力してください。');
+        return;
+      }
+
+      const newDummyEmail = `${newUsername}${window.DUMMY_DOMAIN}`;
+
+      try {
+        const {
+          auth, db, EmailAuthProvider, reauthenticateWithCredential,
+          updateEmail, updateProfile, doc, updateDoc
+        } = window.fbModules;
+
+        const fbUser = auth.currentUser;
+        const credential = EmailAuthProvider.credential(fbUser.email, currentPassword);
+        await reauthenticateWithCredential(fbUser, credential);
+
+        await updateEmail(fbUser, newDummyEmail);
+        await updateProfile(fbUser, { displayName: newUsername });
+
+        await updateDoc(doc(db, "users", user.uid), {
+          username: newUsername,
+          dummyEmail: newDummyEmail
+        });
+
+        // 自分が関連する会社データ内の名前も自動更新
+        for (const sheet of window.appState.sharedSheets) {
+          let needsUpdate = false;
+          const updates = {};
+          if (sheet.ownerUid === user.uid && sheet.createdBy === user.username) {
+            updates.createdBy = newUsername;
+            needsUpdate = true;
+          }
+          if (Array.isArray(sheet.employees) && sheet.employees.some(e => e.uid === user.uid)) {
+            updates.employees = sheet.employees.map(e =>
+              e.uid === user.uid ? { ...e, username: newUsername } : e
+            );
+            needsUpdate = true;
+          }
+          if (Array.isArray(sheet.joinRequests) && sheet.joinRequests.some(r => r.uid === user.uid)) {
+            updates.joinRequests = sheet.joinRequests.map(r =>
+              r.uid === user.uid ? { ...r, username: newUsername } : r
+            );
+            needsUpdate = true;
+          }
+          if (needsUpdate) {
+            await updateDoc(doc(db, "establishment_sheets", sheet.id), updates);
+          }
+        }
+
+        window.appState.currentUser.username = newUsername;
+        window.appState.currentUser.dummyEmail = newDummyEmail;
+        const isAdmin = isAdminUser();
+        document.getElementById('current-user-badge').textContent = isAdmin
+          ? `ADMIN: ${newUsername}`
+          : `USER: ${newUsername}`;
+        document.getElementById('settings-account-summary').textContent =
+          `現在のユーザーネーム: ${newUsername} / 登録メール: ${user.schoolEmail || '-'}`;
+        document.getElementById('settings-username-password').value = '';
+
+        showSettingsSuccess(`ユーザーネームを「${newUsername}」に変更しました！（次回ログイン時もこの名前を使用してください）`);
+        renderView();
+      } catch (err) {
+        if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+          showSettingsError('現在のパスワードが正しくありません。');
+        } else if (err.code === 'auth/email-already-in-use') {
+          showSettingsError('このユーザーネームは既に他の人に使用されています。別の名前をお試しください。');
+        } else {
+          showSettingsError('ユーザーネーム変更エラー: ' + err.message);
+        }
+      }
+    }
+
+    // パスワード変更
+    async function handleChangePassword() {
+      clearSettingsMessages();
+      const currentPassword = document.getElementById('settings-current-password').value;
+      const newPassword = document.getElementById('settings-new-password').value;
+
+      if (!currentPassword) {
+        showSettingsError('現在のパスワードを入力してください。');
+        return;
+      }
+      if (newPassword.length < 6) {
+        showSettingsError('新しいパスワードは6文字以上で入力してください。');
+        return;
+      }
+
+      try {
+        const { auth, EmailAuthProvider, reauthenticateWithCredential, updatePassword } = window.fbModules;
+        const fbUser = auth.currentUser;
+        const credential = EmailAuthProvider.credential(fbUser.email, currentPassword);
+        await reauthenticateWithCredential(fbUser, credential);
+        await updatePassword(fbUser, newPassword);
+
+        document.getElementById('settings-current-password').value = '';
+        document.getElementById('settings-new-password').value = '';
+        showSettingsSuccess('パスワードを変更しました！');
+      } catch (err) {
+        if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+          showSettingsError('現在のパスワードが正しくありません。');
+        } else {
+          showSettingsError('パスワード変更エラー: ' + err.message);
+        }
+      }
+    }
+
     // ================= アカウント作成処理 =================
     async function handleSignup() {
       clearErrors();
@@ -1295,6 +1597,7 @@
     };
 
     async function handleLogout() {
+      closeAccountSettings();
       if (window.fbModules) {
         await window.fbModules.signOut(window.fbModules.auth);
       }
@@ -1434,7 +1737,7 @@
               <tr><th>社長名</th><td>記入欄</td></tr>
               <tr><th>社長メールアドレス</th><td>〇〇@seto-solan.ed.jp</td></tr>
               <tr><th>活動内容</th><td>記入欄</td></tr>
-              <tr><th>初期社員数</th><td>＿＿名（社長含む）</td></tr>
+              <tr><th>初期社員数 / 最大社員数</th><td>初期：＿＿名 / 最大：＿＿名（社長含む）</td></tr>
               <tr><th>給料（税抜 週）</th><td>社長：＿＿R / 社員：＿＿R</td></tr>
               <tr><th>給料（税あり 週）</th><td>社長：＿＿R / 社員：＿＿R</td></tr>
               <tr><th>日付</th><td>20＿＿年＿＿月＿＿日（＿＿）</td></tr>
@@ -1516,7 +1819,8 @@
                   <span class="status-pill status-pending">管理者承認待ち</span>
                 </div>
                 <div style="font-size:12px; color:#94a3b8;">
-                  社長: ${escapeHtml(s.presidentName)} / 活動内容: ${escapeHtml(s.activity)}
+                  社長: ${escapeHtml(s.presidentName)} / 初期社員: ${escapeHtml(s.members)}名 / 最大社員: ${escapeHtml(s.maxMembers || s.members)}名<br>
+                  活動内容: ${escapeHtml(s.activity)}
                 </div>
               </div>
             `).join('')}
@@ -1528,6 +1832,8 @@
           : approvedSheets.map(s => {
               const isOpen = s.acceptingInterviews !== false;
               const employees = Array.isArray(s.employees) ? s.employees : [];
+              const currentCount = 1 + employees.length;
+              const maxCount = Number(s.maxMembers) || 10;
               return `
                 <div class="shared-item">
                   <div class="shared-item-header">
@@ -1537,7 +1843,7 @@
                     </span>
                   </div>
                   <div style="font-size:13px; color:#94a3b8; line-height:1.6;">
-                    社長: <strong style="color:#f1f5f9;">${escapeHtml(s.presidentName)}</strong> / 社員数: ${1 + employees.length}名（初期設定: ${escapeHtml(s.members)}名）<br>
+                    社長: <strong style="color:#f1f5f9;">${escapeHtml(s.presidentName)}</strong> / 現在人数: <strong style="color:#38bdf8;">${currentCount} / ${maxCount}名</strong>（初期: ${escapeHtml(s.members)}名）<br>
                     活動内容: ${escapeHtml(s.activity)}<br>
                     週給(税抜): 社長 ${escapeHtml(s.salaryPreTax)}R / 社員 ${escapeHtml(s.empSalaryPreTax)}R<br>
                     週給(税あり): 社長 ${Math.floor(s.salaryPreTax * 0.9)}R / 社員 ${Math.floor(s.empSalaryPreTax * 0.9)}R
@@ -1565,9 +1871,15 @@
               <label>活動内容</label>
               <input type="text" id="in-activity" placeholder="例：デジタルコンテンツ制作">
             </div>
-            <div class="form-group">
-              <label>初期社員数（社長含む）</label>
-              <input type="number" id="in-members" value="1" min="1">
+            <div class="form-row-2">
+              <div class="form-group">
+                <label>初期社員数（社長含む）</label>
+                <input type="number" id="in-members" value="1" min="1">
+              </div>
+              <div class="form-group">
+                <label>最大社員数（社長含む）</label>
+                <input type="number" id="in-max-members" value="5" min="1">
+              </div>
             </div>
             <div class="form-row-2">
               <div class="form-group">
@@ -1589,12 +1901,15 @@
       } else if (tab === 'companies') {
         const sheets = window.appState.sharedSheets.filter(s => s.status !== 'pending');
         const rows = sheets.length === 0
-          ? `<tr><td colspan="6" style="text-align:center; color:#94a3b8; padding:20px;">現在公開されている会社はありません。</td></tr>`
+          ? `<tr><td colspan="7" style="text-align:center; color:#94a3b8; padding:20px;">現在公開されている会社はありません。</td></tr>`
           : sheets.map(s => {
               const isOpen = s.acceptingInterviews !== false;
               const employees = Array.isArray(s.employees) ? s.employees : [];
               const joinRequests = Array.isArray(s.joinRequests) ? s.joinRequests : [];
               const empNames = employees.map(e => e.username).join(', ');
+              const currentCount = 1 + employees.length;
+              const maxCount = Number(s.maxMembers) || 10;
+              const isFull = currentCount >= maxCount;
 
               const isOwner = s.ownerUid === myUid;
               const isEmployee = employees.some(e => e.uid === myUid);
@@ -1614,6 +1929,8 @@
                 `;
               } else if (!isOpen) {
                 actionHtml = `<span style="font-size:12px; color:#64748b;">現在募集停止中</span>`;
+              } else if (isFull) {
+                actionHtml = `<span style="font-size:12px; color:#f87171;">定員到達（満員）</span>`;
               } else {
                 actionHtml = `<button class="btn-cyber-primary-sm" onclick="applyToJoinCompany('${s.id}', '${escapeHtml(s.companyName)}')">入社を申請する</button>`;
               }
@@ -1624,9 +1941,10 @@
                   <td>${escapeHtml(s.presidentName)}</td>
                   <td>${escapeHtml(s.activity)}</td>
                   <td>${empNames ? escapeHtml(empNames) : '<span style="color:#64748b;">なし（社長のみ）</span>'}</td>
+                  <td><strong>${currentCount} / ${maxCount}名</strong></td>
                   <td>
-                    <span class="status-pill ${isOpen ? 'status-open' : 'status-closed'}">
-                      ${isOpen ? '面接受付中' : '受付停止中'}
+                    <span class="status-pill ${isOpen && !isFull ? 'status-open' : 'status-closed'}">
+                      ${!isOpen ? '受付停止中' : isFull ? '定員到達' : '面接受付中'}
                     </span>
                   </td>
                   <td>${actionHtml}</td>
@@ -1644,6 +1962,7 @@
                   <th>社長名</th>
                   <th>活動内容</th>
                   <th>所属社員</th>
+                  <th>人数 / 定員</th>
                   <th>面接受付状況</th>
                   <th>入社申請</th>
                 </tr>
@@ -1665,8 +1984,9 @@
           const isOpen = comp.acceptingInterviews !== false;
           const employees = Array.isArray(comp.employees) ? comp.employees : [];
           const joinRequests = Array.isArray(comp.joinRequests) ? comp.joinRequests : [];
+          const currentCount = 1 + employees.length;
+          const maxCount = Number(comp.maxMembers) || 5;
 
-          // 入社申請を送ってきた人だけを表示
           const applicantsHtml = joinRequests.length === 0
             ? `<div class="note-box" style="margin:6px 0;">現在、新しい入社申請はありません（「4. 会社一覧表」から申請した人のみここに表示されます）。</div>`
             : joinRequests.map(req => `
@@ -1698,7 +2018,7 @@
           return wrapCard('MANAGEMENT // CEO CONSOLE', 'badge-purple', `会社管理：${escapeHtml(comp.companyName)}`, `
             <div class="toggle-status-box">
               <div>
-                <div style="font-size:12px; color:#94a3b8; font-weight:700;">現在の面接受付ステータス</div>
+                <div style="font-size:12px; color:#94a3b8; font-weight:700;">現在の面接受付ステータス（人数：${currentCount} / ${maxCount}名）</div>
                 <div style="margin-top:4px;">
                   <span class="status-pill ${isOpen ? 'status-open' : 'status-closed'}">
                     ${isOpen ? '● 面接を受け付けています' : '■ 現在面接は受け付けていません'}
@@ -1718,7 +2038,7 @@
             </div>
 
             <div style="margin-bottom:12px;">
-              <div style="font-size:12px; color:#94a3b8; font-weight:700;">所属社員一覧（社長：${escapeHtml(comp.presidentName)}）</div>
+              <div style="font-size:12px; color:#94a3b8; font-weight:700;">所属社員一覧（社長：${escapeHtml(comp.presidentName)} / 定員 ${maxCount}名）</div>
               ${empTagsHtml}
             </div>
 
@@ -1728,14 +2048,18 @@
                 <label>会社名</label>
                 <input type="text" id="edit-company-${comp.id}" value="${escapeHtml(comp.companyName)}">
               </div>
+              <div class="form-group">
+                <label>社長名</label>
+                <input type="text" id="edit-president-${comp.id}" value="${escapeHtml(comp.presidentName)}">
+              </div>
               <div class="form-row-2">
-                <div class="form-group">
-                  <label>社長名</label>
-                  <input type="text" id="edit-president-${comp.id}" value="${escapeHtml(comp.presidentName)}">
-                </div>
                 <div class="form-group">
                   <label>初期社員数（社長含む）</label>
                   <input type="number" id="edit-members-${comp.id}" value="${escapeHtml(comp.members)}" min="1">
+                </div>
+                <div class="form-group">
+                  <label>最大社員数（社長含む）</label>
+                  <input type="number" id="edit-max-members-${comp.id}" value="${escapeHtml(maxCount)}" min="1">
                 </div>
               </div>
               <div class="form-group">
@@ -1785,7 +2109,7 @@
                 </div>
                 <div style="font-size:13px; color:#cbd5e1; line-height:1.6; margin-bottom:10px;">
                   申請ユーザー: <strong>${escapeHtml(app.createdBy || '不明')}</strong> / 社長名: ${escapeHtml(app.presidentName)}<br>
-                  メール: ${escapeHtml(app.email)} / 初期社員数: ${escapeHtml(app.members)}名<br>
+                  メール: ${escapeHtml(app.email)} / 初期社員数: ${escapeHtml(app.members)}名 / 最大社員数: ${escapeHtml(app.maxMembers || app.members)}名<br>
                   活動内容: ${escapeHtml(app.activity)}<br>
                   週給(税抜): 社長 ${escapeHtml(app.salaryPreTax)}R / 社員 ${escapeHtml(app.empSalaryPreTax)}R
                 </div>
@@ -1859,12 +2183,21 @@
         return;
       }
 
+      const membersVal = Number(document.getElementById('in-members').value) || 1;
+      const maxMembersVal = Number(document.getElementById('in-max-members').value) || membersVal;
+
+      if (maxMembersVal < membersVal) {
+        alert("最大社員数は初期社員数以上の人数を設定してください。");
+        return;
+      }
+
       const data = {
         companyName: document.getElementById('in-company').value.trim(),
         presidentName: document.getElementById('in-president').value.trim(),
         email: document.getElementById('in-email').value.trim(),
         activity: document.getElementById('in-activity').value.trim(),
-        members: document.getElementById('in-members').value,
+        members: membersVal,
+        maxMembers: maxMembersVal,
         empSalaryPreTax: Number(document.getElementById('in-emp-salary').value),
         salaryPreTax: Number(document.getElementById('in-pres-salary').value),
         ownerUid: uid,
@@ -1899,6 +2232,13 @@
 
       const comp = window.appState.sharedSheets.find(s => s.id === sheetId);
       if (!comp) return;
+
+      const currentEmps = Array.isArray(comp.employees) ? comp.employees : [];
+      const maxCount = Number(comp.maxMembers) || 10;
+      if (1 + currentEmps.length >= maxCount) {
+        alert("この会社はすでに最大社員数に達しています。");
+        return;
+      }
 
       const currentRequests = Array.isArray(comp.joinRequests) ? comp.joinRequests : [];
       if (currentRequests.some(r => r.uid === user.uid)) return;
@@ -1997,11 +2337,17 @@
       const comp = window.appState.sharedSheets.find(s => s.id === sheetId);
       if (!comp) return;
 
+      const currentEmps = Array.isArray(comp.employees) ? comp.employees : [];
+      const maxCount = Number(comp.maxMembers) || 5;
+      if (1 + currentEmps.length >= maxCount) {
+        alert(`最大社員数（${maxCount}名）に達しているため追加できません。先に最大社員数を増やすか、社員枠を空けてください。`);
+        return;
+      }
+
       const currentRequests = Array.isArray(comp.joinRequests) ? comp.joinRequests : [];
       const applicant = currentRequests.find(r => r.uid === targetUid);
       if (!applicant) return;
 
-      const currentEmps = Array.isArray(comp.employees) ? comp.employees : [];
       const updatedRequests = currentRequests.filter(r => r.uid !== targetUid);
       const updatedEmps = currentEmps.some(e => e.uid === targetUid)
         ? currentEmps
@@ -2058,9 +2404,13 @@
     }
 
     async function updateCompanyInfo(sheetId) {
+      const comp = window.appState.sharedSheets.find(s => s.id === sheetId);
+      const currentTotal = 1 + (Array.isArray(comp?.employees) ? comp.employees.length : 0);
+
       const companyName = document.getElementById(`edit-company-${sheetId}`).value.trim();
       const presidentName = document.getElementById(`edit-president-${sheetId}`).value.trim();
-      const members = document.getElementById(`edit-members-${sheetId}`).value;
+      const members = Number(document.getElementById(`edit-members-${sheetId}`).value) || 1;
+      const maxMembers = Number(document.getElementById(`edit-max-members-${sheetId}`).value) || members;
       const email = document.getElementById(`edit-email-${sheetId}`).value.trim();
       const activity = document.getElementById(`edit-activity-${sheetId}`).value.trim();
       const salaryPreTax = Number(document.getElementById(`edit-pres-salary-${sheetId}`).value);
@@ -2070,6 +2420,10 @@
         alert("会社名と社長名は必須です。");
         return;
       }
+      if (maxMembers < currentTotal) {
+        alert(`現在の所属人数（${currentTotal}名）より少ない最大社員数は設定できません。`);
+        return;
+      }
 
       try {
         const { db, doc, updateDoc } = window.fbModules;
@@ -2077,6 +2431,7 @@
           companyName,
           presidentName,
           members,
+          maxMembers,
           email,
           activity,
           salaryPreTax,

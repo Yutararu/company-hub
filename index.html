@@ -324,6 +324,58 @@
       color: #ffffff;
     }
 
+    .btn-cyber-success {
+      padding: 8px 16px;
+      border: 1px solid rgba(16, 185, 129, 0.5);
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      background: rgba(16, 185, 129, 0.18);
+      color: #34d399;
+      transition: 0.2s;
+    }
+    .btn-cyber-success:hover {
+      background: rgba(16, 185, 129, 0.35);
+      color: #ffffff;
+    }
+
+    .btn-cyber-danger {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      background: rgba(239, 68, 68, 0.12);
+      color: #fca5a5;
+      letter-spacing: 0.8px;
+      transition: all 0.25s ease;
+    }
+
+    .btn-cyber-danger:hover {
+      background: rgba(239, 68, 68, 0.28);
+      color: #ffffff;
+      box-shadow: 0 0 18px rgba(239, 68, 68, 0.35);
+    }
+
+    .btn-cyber-danger-sm {
+      padding: 8px 14px;
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      transition: 0.2s;
+    }
+    .btn-cyber-danger-sm:hover {
+      background: rgba(239, 68, 68, 0.35);
+      color: #ffffff;
+    }
+
     .auth-form { text-align: left; }
 
     .error-msg {
@@ -483,7 +535,7 @@
 
     .controls-container {
       width: 100%;
-      max-width: 1120px;
+      max-width: 1160px;
       display: flex;
       justify-content: center;
       margin-bottom: 32px;
@@ -530,12 +582,22 @@
       box-shadow: 0 0 18px rgba(192, 132, 252, 0.45);
     }
 
+    .filter-btn.admin-tab {
+      border-color: rgba(244, 63, 94, 0.6);
+      color: #fda4af;
+    }
+    .filter-btn.admin-tab.active {
+      background: linear-gradient(135deg, #e11d48, #9333ea);
+      color: #ffffff;
+      box-shadow: 0 0 18px rgba(244, 63, 94, 0.45);
+    }
+
     .card-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
       gap: 26px;
       width: 100%;
-      max-width: 1120px;
+      max-width: 1160px;
     }
 
     .exhibit-card {
@@ -618,6 +680,12 @@
       border: 1px solid rgba(192, 132, 252, 0.35);
     }
 
+    .badge-red {
+      background: rgba(244, 63, 94, 0.15);
+      color: #fda4af;
+      border: 1px solid rgba(244, 63, 94, 0.4);
+    }
+
     .card-title {
       font-size: 19px;
       font-weight: 700;
@@ -691,6 +759,12 @@
       box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
     }
 
+    .form-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
     .shared-item {
       background: rgba(15, 23, 42, 0.8);
       border: 1px solid #334155;
@@ -710,7 +784,6 @@
       gap: 8px;
     }
 
-    /* ステータスバッジ（面接受付中/停止中） */
     .status-pill {
       display: inline-block;
       padding: 3px 10px;
@@ -728,8 +801,12 @@
       color: #f87171;
       border: 1px solid rgba(239, 68, 68, 0.4);
     }
+    .status-pending {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
 
-    /* 社員タグ・管理UI */
     .member-chip {
       display: inline-flex;
       align-items: center;
@@ -761,12 +838,21 @@
       border: 1px solid #334155;
       border-radius: 12px;
       padding: 14px 16px;
-      margin-bottom: 16px;
+      margin-bottom: 18px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .section-divider {
+      border-top: 1px solid #334155;
+      margin: 20px 0;
+      padding-top: 18px;
     }
 
     @media (max-width: 640px) {
       .digital-clock { display: none; }
       .card-grid { grid-template-columns: 1fr; }
+      .form-row-2 { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -878,16 +964,17 @@
     <main class="exhibition-view">
       <div class="exhibition-header">
         <h1>会社設立・活動ガイド</h1>
-        <p>会社の設立手順、入社方法、設立シートの作成・共有および会社管理を行えます。</p>
+        <p>会社の設立手順、入社方法、設立申請・共有および会社管理を行えます。</p>
       </div>
 
       <div class="controls-container">
         <div class="filter-group" id="nav-tabs-container">
           <button class="filter-btn active" data-tab="found" onclick="switchTab('found')">1. 会社を建てて活動する方法</button>
           <button class="filter-btn" data-tab="join" onclick="switchTab('join')">2. 会社に入って活動する方法</button>
-          <button class="filter-btn" data-tab="simulator" onclick="switchTab('simulator')">3. 設立シート模擬入力 & 共有</button>
+          <button class="filter-btn" data-tab="simulator" onclick="switchTab('simulator')">3. 設立シート申請 & 共有</button>
           <button class="filter-btn" data-tab="companies" onclick="switchTab('companies')">4. 会社一覧表</button>
           <button class="filter-btn manage-tab" id="tab-manage-btn" data-tab="manage" style="display:none;" onclick="switchTab('manage')">5. 会社の管理</button>
+          <button class="filter-btn admin-tab" id="tab-admin-btn" data-tab="admin" style="display:none;" onclick="switchTab('admin')">★ 管理者画面</button>
         </div>
       </div>
 
@@ -907,20 +994,21 @@
     };
 
     window.DUMMY_DOMAIN = "@company-hub.local";
+    window.ADMIN_EMAIL = "2020018@seto-solan.ed.jp";
 
     window.appState = {
       currentTab: 'found',
       useFirebase: Boolean(firebaseConfig.apiKey),
       currentUser: null,
-      sharedSheets: [], // 設立された全会社のデータ
-      allUsers: []      // 登録済みの全ユーザーアカウント一覧
+      sharedSheets: [],
+      allUsers: []
     };
 
     async function initFirebase() {
       try {
         const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
         const { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
-        const { getFirestore, collection, doc, setDoc, getDoc, addDoc, updateDoc, onSnapshot, query, orderBy } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+        const { getFirestore, collection, doc, setDoc, getDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
         
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -929,44 +1017,68 @@
         window.fbModules = {
           auth, db,
           createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile,
-          collection, doc, setDoc, getDoc, addDoc, updateDoc, query, orderBy
+          collection, doc, setDoc, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy
         };
 
         let unsubscribeSheets = null;
         let unsubscribeUsers = null;
+        let unsubscribeMyUserDoc = null;
 
         onAuthStateChanged(auth, async (user) => {
           if (user) {
             const username = user.email.replace(window.DUMMY_DOMAIN, '');
             let schoolEmail = '';
+            let isFrozen = false;
+
             try {
               const userSnap = await getDoc(doc(db, "users", user.uid));
               if (userSnap.exists()) {
-                schoolEmail = userSnap.data().schoolEmail || '';
+                const uData = userSnap.data();
+                schoolEmail = uData.schoolEmail || '';
+                isFrozen = Boolean(uData.isFrozen);
               }
             } catch (e) {
               console.warn("ユーザー情報取得:", e);
             }
 
+            // 凍結チェック（管理者は除外）
+            if (isFrozen && schoolEmail !== window.ADMIN_EMAIL) {
+              await signOut(auth);
+              showAuthForm('login');
+              showError('login-error', 'このアカウントは管理者によって凍結されています。');
+              return;
+            }
+
             window.enterMainApp({ username, schoolEmail, dummyEmail: user.email, uid: user.uid });
 
-            // 1. 全会社（設立シート）のリアルタイム購読
+            // 自分自身の凍結状態をリアルタイム監視（使用中に凍結されたら即ログアウト）
+            if (!unsubscribeMyUserDoc) {
+              unsubscribeMyUserDoc = onSnapshot(doc(db, "users", user.uid), async (snap) => {
+                if (snap.exists()) {
+                  const data = snap.data();
+                  if (data.isFrozen && data.schoolEmail !== window.ADMIN_EMAIL) {
+                    alert("あなたのアカウントは管理者によって凍結されました。ログアウトします。");
+                    await handleLogout();
+                  }
+                }
+              });
+            }
+
             if (!unsubscribeSheets) {
               const q = query(collection(db, "establishment_sheets"), orderBy("createdAt", "desc"));
               unsubscribeSheets = onSnapshot(q, (snapshot) => {
                 window.appState.sharedSheets = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                window.updateManageTabVisibility();
-                if (['simulator', 'companies', 'manage'].includes(window.appState.currentTab)) {
+                window.updateSpecialTabsVisibility();
+                if (['simulator', 'companies', 'manage', 'admin'].includes(window.appState.currentTab)) {
                   renderView();
                 }
               });
             }
 
-            // 2. 全登録アカウント一覧のリアルタイム購読（社員追加用）
             if (!unsubscribeUsers) {
               unsubscribeUsers = onSnapshot(collection(db, "users"), (snapshot) => {
                 window.appState.allUsers = snapshot.docs.map(d => ({ uid: d.id, ...d.data() }));
-                if (window.appState.currentTab === 'manage') {
+                if (['manage', 'admin'].includes(window.appState.currentTab)) {
                   renderView();
                 }
               });
@@ -974,6 +1086,7 @@
           } else {
             if (unsubscribeSheets) { unsubscribeSheets(); unsubscribeSheets = null; }
             if (unsubscribeUsers) { unsubscribeUsers(); unsubscribeUsers = null; }
+            if (unsubscribeMyUserDoc) { unsubscribeMyUserDoc(); unsubscribeMyUserDoc = null; }
           }
         });
       } catch (e) {
@@ -1096,6 +1209,7 @@
           username: username,
           schoolEmail: realEmail,
           dummyEmail: dummyEmail,
+          isFrozen: false,
           createdAt: Date.now()
         });
 
@@ -1133,7 +1247,10 @@
     // ================= メイン画面遷移 & ログアウト =================
     window.enterMainApp = function(userObj) {
       window.appState.currentUser = userObj;
-      document.getElementById('current-user-badge').textContent = `USER: ${userObj.username}`;
+      const isAdmin = userObj.schoolEmail === window.ADMIN_EMAIL;
+      document.getElementById('current-user-badge').textContent = isAdmin
+        ? `ADMIN: ${userObj.username}`
+        : `USER: ${userObj.username}`;
       
       const gateway = document.getElementById('auth-gateway');
       gateway.classList.remove('active');
@@ -1141,7 +1258,7 @@
 
       const appViewport = document.getElementById('app-viewport');
       appViewport.classList.add('visible');
-      window.updateManageTabVisibility();
+      window.updateSpecialTabsVisibility();
       renderView();
     };
 
@@ -1157,24 +1274,38 @@
       setTimeout(() => gateway.classList.add('active'), 10);
     }
 
-    // ================= 社長判定（「5. 会社の管理」タブの有効化） =================
-    function getMyCompanies() {
-      const uid = window.appState.currentUser?.uid;
-      if (!uid) return [];
-      return window.appState.sharedSheets.filter(s => s.ownerUid === uid);
+    // ================= 特別タブ判定（5. 会社の管理 & ★ 管理者画面） =================
+    function isAdminUser() {
+      return window.appState.currentUser?.schoolEmail === window.ADMIN_EMAIL;
     }
 
-    window.updateManageTabVisibility = function() {
-      const myCompanies = getMyCompanies();
-      const manageBtn = document.getElementById('tab-manage-btn');
-      if (!manageBtn) return;
+    // 承認済み（approved）の自社のみ管理可能
+    function getMyApprovedCompanies() {
+      const uid = window.appState.currentUser?.uid;
+      if (!uid) return [];
+      return window.appState.sharedSheets.filter(s => s.ownerUid === uid && s.status !== 'pending');
+    }
 
-      if (myCompanies.length > 0) {
-        manageBtn.style.display = 'inline-block';
-      } else {
-        manageBtn.style.display = 'none';
-        if (window.appState.currentTab === 'manage') {
-          switchTab('found');
+    window.updateSpecialTabsVisibility = function() {
+      const myCompanies = getMyApprovedCompanies();
+      const manageBtn = document.getElementById('tab-manage-btn');
+      const adminBtn = document.getElementById('tab-admin-btn');
+
+      if (manageBtn) {
+        if (myCompanies.length > 0) {
+          manageBtn.style.display = 'inline-block';
+        } else {
+          manageBtn.style.display = 'none';
+          if (window.appState.currentTab === 'manage') switchTab('found');
+        }
+      }
+
+      if (adminBtn) {
+        if (isAdminUser()) {
+          adminBtn.style.display = 'inline-block';
+        } else {
+          adminBtn.style.display = 'none';
+          if (window.appState.currentTab === 'admin') switchTab('found');
         }
       }
     };
@@ -1256,6 +1387,7 @@
     function renderView() {
       const area = document.getElementById('view-area');
       const tab = window.appState.currentTab;
+      const myUid = window.appState.currentUser?.uid;
 
       if (tab === 'found') {
         area.innerHTML =
@@ -1338,9 +1470,32 @@
       } else if (tab === 'simulator') {
         const defaultEmail = window.appState.currentUser?.schoolEmail || '';
         const defaultUser = window.appState.currentUser?.username || '';
-        const sheetsHtml = window.appState.sharedSheets.length === 0
-          ? `<div class="note-box">まだ設立された会社はありません。左のフォームから作成できます。</div>`
-          : window.appState.sharedSheets.map(s => {
+
+        // 自分の申請中シート
+        const myPending = window.appState.sharedSheets.filter(s => s.ownerUid === myUid && s.status === 'pending');
+        // 承認済みの全会社
+        const approvedSheets = window.appState.sharedSheets.filter(s => s.status !== 'pending');
+
+        const pendingHtml = myPending.length === 0 ? '' : `
+          <div style="margin-bottom:16px;">
+            <div style="font-size:12px; color:#fbbf24; font-weight:700; margin-bottom:8px;">▼ あなたの承認待ち申請</div>
+            ${myPending.map(s => `
+              <div class="shared-item" style="border-color:rgba(245, 158, 11, 0.4);">
+                <div class="shared-item-header">
+                  <span>${escapeHtml(s.companyName)}</span>
+                  <span class="status-pill status-pending">管理者承認待ち</span>
+                </div>
+                <div style="font-size:12px; color:#94a3b8;">
+                  社長: ${escapeHtml(s.presidentName)} / 活動内容: ${escapeHtml(s.activity)}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+
+        const approvedHtml = approvedSheets.length === 0
+          ? `<div class="note-box">まだ許可・共有された会社はありません。</div>`
+          : approvedSheets.map(s => {
               const isOpen = s.acceptingInterviews !== false;
               const employees = Array.isArray(s.employees) ? s.employees : [];
               return `
@@ -1362,8 +1517,8 @@
             }).join('');
 
         area.innerHTML =
-          wrapCard('SIMULATOR // INPUT', '', '会社設立シート 作成', `
-            <div class="note-box">※ ここで会社を設立すると「4. 会社一覧表」に掲載され、あなた専用の「5. 会社の管理」タブが有効になります。</div>
+          wrapCard('APPLICATION // INPUT', '', '会社設立シート 申請作成', `
+            <div class="note-box">※ 申請を送信すると管理者画面に届き、管理者が許可すると全員に共有・公開されます。</div>
             <div class="form-group">
               <label>会社名</label>
               <input type="text" id="in-company" placeholder="例：ネクストシステム株式会社">
@@ -1384,24 +1539,27 @@
               <label>初期社員数（社長含む）</label>
               <input type="number" id="in-members" value="1" min="1">
             </div>
-            <div class="form-group">
-              <label>社員の給料（税抜 週 / 最低300R）</label>
-              <input type="number" id="in-emp-salary" value="300" min="300">
+            <div class="form-row-2">
+              <div class="form-group">
+                <label>社長の給料（税抜 週）</label>
+                <input type="number" id="in-pres-salary" value="300" min="0">
+              </div>
+              <div class="form-group">
+                <label>社員の給料（税抜 週 / 最低300R）</label>
+                <input type="number" id="in-emp-salary" value="300" min="300">
+              </div>
             </div>
-            <div class="form-group">
-              <label>社長の給料（税抜 週）</label>
-              <input type="number" id="in-pres-salary" value="300" min="0">
-            </div>
-            <button class="btn-cyber-primary" onclick="submitSheet()">会社を設立して全員に共有する</button>
+            <button class="btn-cyber-primary" onclick="submitSheet()">会社設立の申請を送る</button>
           `) +
-          wrapCard('DATABASE // SHARED', 'badge-indigo', '設立された会社・シート一覧', `
-            <div class="note-box">※ ログイン中のユーザー全員にリアルタイムで共有されます。</div>
-            ${sheetsHtml}
+          wrapCard('DATABASE // SHARED', 'badge-indigo', '許可・共有済みの会社一覧', `
+            <div class="note-box">※ 管理者に許可された会社のみがここへ表示されます。</div>
+            ${pendingHtml}
+            ${approvedHtml}
           `);
       } else if (tab === 'companies') {
-        const sheets = window.appState.sharedSheets;
+        const sheets = window.appState.sharedSheets.filter(s => s.status !== 'pending');
         const rows = sheets.length === 0
-          ? `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:20px;">現在登録されている会社はありません。「3. 設立シート模擬入力 & 共有」から設立するとここに表示されます。</td></tr>`
+          ? `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:20px;">現在公開されている会社はありません。</td></tr>`
           : sheets.map(s => {
               const isOpen = s.acceptingInterviews !== false;
               const employees = Array.isArray(s.employees) ? s.employees : [];
@@ -1422,7 +1580,7 @@
             }).join('');
 
         area.innerHTML = wrapCard('DIRECTORY // COMPANIES', '', '会社一覧表', `
-          <div class="note-box">※ 設立された会社の一覧と、現在の面接受付状況がリアルタイムで表示されます。</div>
+          <div class="note-box">※ 設立許可された会社の一覧と、現在の面接受付状況がリアルタイムで表示されます。</div>
           <div style="overflow-x:auto;">
             <table>
               <thead>
@@ -1439,15 +1597,14 @@
           </div>
         `);
       } else if (tab === 'manage') {
-        const myCompanies = getMyCompanies();
+        const myCompanies = getMyApprovedCompanies();
         if (myCompanies.length === 0) {
           area.innerHTML = wrapCard('MANAGEMENT // RESTRICTED', 'badge-purple', '会社の管理', `
-            <div class="note-box">あなたが設立した会社が見つかりません。「3. 設立シート模擬入力 & 共有」から会社を設立すると管理画面が有効になります。</div>
+            <div class="note-box">許可済みの自社が見つかりません。</div>
           `);
           return;
         }
 
-        const myUid = window.appState.currentUser?.uid;
         const allUsers = window.appState.allUsers;
 
         area.innerHTML = myCompanies.map(comp => {
@@ -1455,8 +1612,7 @@
           const employees = Array.isArray(comp.employees) ? comp.employees : [];
           const existingUids = new Set([myUid, ...employees.map(e => e.uid)]);
 
-          // 未所属の登録アカウントをドロップダウン候補に生成
-          const candidateUsers = allUsers.filter(u => !existingUids.has(u.uid));
+          const candidateUsers = allUsers.filter(u => !existingUids.has(u.uid) && !u.isFrozen);
           const optionsHtml = candidateUsers.length === 0
             ? `<option value="">追加可能なアカウントがありません</option>`
             : `<option value="">-- 追加する社員アカウントを選択 --</option>` +
@@ -1498,16 +1654,141 @@
               </div>
             </div>
 
-            <div style="margin-top:16px;">
+            <div style="margin-bottom:12px;">
               <div style="font-size:12px; color:#94a3b8; font-weight:700;">所属社員一覧（社長：${escapeHtml(comp.presidentName)}）</div>
               ${empTagsHtml}
             </div>
+
+            <div class="section-divider">
+              <div style="font-size:14px; color:#38bdf8; font-weight:700; margin-bottom:12px;">▼ 会社設立シート情報の編集</div>
+              <div class="form-group">
+                <label>会社名</label>
+                <input type="text" id="edit-company-${comp.id}" value="${escapeHtml(comp.companyName)}">
+              </div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label>社長名</label>
+                  <input type="text" id="edit-president-${comp.id}" value="${escapeHtml(comp.presidentName)}">
+                </div>
+                <div class="form-group">
+                  <label>初期社員数（社長含む）</label>
+                  <input type="number" id="edit-members-${comp.id}" value="${escapeHtml(comp.members)}" min="1">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>社長メールアドレス</label>
+                <input type="text" id="edit-email-${comp.id}" value="${escapeHtml(comp.email || '')}">
+              </div>
+              <div class="form-group">
+                <label>活動内容</label>
+                <input type="text" id="edit-activity-${comp.id}" value="${escapeHtml(comp.activity)}">
+              </div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label>社長の給料（税抜 週）</label>
+                  <input type="number" id="edit-pres-salary-${comp.id}" value="${escapeHtml(comp.salaryPreTax)}" min="0">
+                </div>
+                <div class="form-group">
+                  <label>社員の給料（税抜 週）</label>
+                  <input type="number" id="edit-emp-salary-${comp.id}" value="${escapeHtml(comp.empSalaryPreTax)}" min="300">
+                </div>
+              </div>
+              <button class="btn-cyber-primary" onclick="updateCompanyInfo('${comp.id}')">変更内容を保存する</button>
+            </div>
+
+            <div class="section-divider">
+              <button class="btn-cyber-danger" onclick="deleteCompany('${comp.id}', '${escapeHtml(comp.companyName)}')">
+                この会社を削除する（解散）
+              </button>
+            </div>
           `);
         }).join('');
+      } else if (tab === 'admin') {
+        if (!isAdminUser()) {
+          area.innerHTML = wrapCard('ACCESS DENIED', 'badge-red', '権限エラー', `
+            <div class="note-box">この画面は管理者専用です。</div>
+          `);
+          return;
+        }
+
+        const pendingApps = window.appState.sharedSheets.filter(s => s.status === 'pending');
+        const appsHtml = pendingApps.length === 0
+          ? `<div class="note-box">現在、未処理の会社設立申請はありません。</div>`
+          : pendingApps.map(app => `
+              <div class="shared-item" style="border-color:rgba(245, 158, 11, 0.5);">
+                <div class="shared-item-header">
+                  <span>${escapeHtml(app.companyName)}</span>
+                  <span class="status-pill status-pending">審査待ち</span>
+                </div>
+                <div style="font-size:13px; color:#cbd5e1; line-height:1.6; margin-bottom:10px;">
+                  申請ユーザー: <strong>${escapeHtml(app.createdBy || '不明')}</strong> / 社長名: ${escapeHtml(app.presidentName)}<br>
+                  メール: ${escapeHtml(app.email)} / 初期社員数: ${escapeHtml(app.members)}名<br>
+                  活動内容: ${escapeHtml(app.activity)}<br>
+                  週給(税抜): 社長 ${escapeHtml(app.salaryPreTax)}R / 社員 ${escapeHtml(app.empSalaryPreTax)}R
+                </div>
+                <div style="display:flex; gap:10px;">
+                  <button class="btn-cyber-success" onclick="approveCompany('${app.id}', '${escapeHtml(app.companyName)}')">
+                    ✓ 設立を許可して公開する
+                  </button>
+                  <button class="btn-cyber-danger-sm" onclick="rejectCompany('${app.id}', '${escapeHtml(app.companyName)}')">
+                    ✕ 申請を拒否（削除）
+                  </button>
+                </div>
+              </div>
+            `).join('');
+
+        const usersList = window.appState.allUsers;
+        const usersRows = usersList.length === 0
+          ? `<tr><td colspan="4" style="text-align:center; color:#94a3b8;">登録ユーザーがいません。</td></tr>`
+          : usersList.map(u => {
+              const isSelfAdmin = u.schoolEmail === window.ADMIN_EMAIL;
+              const frozen = Boolean(u.isFrozen);
+              return `
+                <tr>
+                  <td><strong>${escapeHtml(u.username)}</strong></td>
+                  <td style="font-size:12px;">${escapeHtml(u.schoolEmail || '-')}</td>
+                  <td>
+                    <span class="status-pill ${frozen ? 'status-closed' : 'status-open'}">
+                      ${frozen ? '凍結中' : '有効'}
+                    </span>
+                  </td>
+                  <td>
+                    ${isSelfAdmin
+                      ? '<span style="font-size:11px; color:#94a3b8;">管理者アカウント</span>'
+                      : `<button class="${frozen ? 'btn-cyber-success' : 'btn-cyber-danger-sm'}" onclick="toggleUserFreeze('${u.uid}', ${!frozen}, '${escapeHtml(u.username)}')">
+                          ${frozen ? '凍結を解除' : 'アカウント凍結'}
+                        </button>`
+                    }
+                  </td>
+                </tr>
+              `;
+            }).join('');
+
+        area.innerHTML =
+          wrapCard('ADMIN // APPLICATIONS', 'badge-red', `会社設立の申請一覧（${pendingApps.length}件）`, `
+            <div class="note-box">※ 許可を押すと「4. 会社一覧表」に公開され、申請者の「5. 会社の管理」タブが有効になります。</div>
+            ${appsHtml}
+          `) +
+          wrapCard('ADMIN // USER CONTROL', 'badge-red', '登録アカウント管理（凍結・解除）', `
+            <div class="note-box">※ 凍結されたアカウントはログインおよびシステム利用が即座に停止されます。</div>
+            <div style="overflow-x:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ユーザーネーム</th>
+                    <th>学校メール</th>
+                    <th>状態</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>${usersRows}</tbody>
+              </table>
+            </div>
+          `);
       }
     }
 
-    // ================= 会社設立シート作成 =================
+    // ================= 会社設立の申請送信 =================
     async function submitSheet() {
       const uid = window.appState.currentUser?.uid;
       if (!uid) {
@@ -1525,6 +1806,7 @@
         salaryPreTax: Number(document.getElementById('in-pres-salary').value),
         ownerUid: uid,
         createdBy: window.appState.currentUser?.username || 'unknown',
+        status: 'pending', // 初期状態は「承認待ち」
         acceptingInterviews: true,
         employees: [],
         createdAt: Date.now()
@@ -1540,13 +1822,52 @@
         await addDoc(collection(db, "establishment_sheets"), data);
         document.getElementById('in-company').value = '';
         document.getElementById('in-activity').value = '';
-        alert("会社を設立しました！「5. 会社の管理」タブが有効になりました。");
+        alert("会社設立の申請を管理者に送信しました！許可されるまでお待ちください。");
       } catch (e) {
-        alert("保存エラーが発生しました。Firestoreのルールが更新・公開されているか確認してください: " + e.message);
+        alert("送信エラーが発生しました: " + e.message);
       }
     }
 
-    // ================= 会社管理アクション（面接受付切替・社員追加・削除） =================
+    // ================= 管理者アクション（申請許可・拒否・アカウント凍結/解除） =================
+    async function approveCompany(sheetId, companyName) {
+      try {
+        const { db, doc, updateDoc } = window.fbModules;
+        await updateDoc(doc(db, "establishment_sheets", sheetId), {
+          status: 'approved'
+        });
+        alert(`「${companyName}」の設立を許可し、全体に公開しました！`);
+      } catch (e) {
+        alert("許可処理エラー: " + e.message);
+      }
+    }
+
+    async function rejectCompany(sheetId, companyName) {
+      if (!confirm(`「${companyName}」の設立申請を拒否（削除）しますか？`)) return;
+      try {
+        const { db, doc, deleteDoc } = window.fbModules;
+        await deleteDoc(doc(db, "establishment_sheets", sheetId));
+        alert(`「${companyName}」の申請を拒否しました。`);
+      } catch (e) {
+        alert("拒否処理エラー: " + e.message);
+      }
+    }
+
+    async function toggleUserFreeze(targetUid, freezeState, username) {
+      const actionLabel = freezeState ? "凍結" : "凍結解除";
+      if (!confirm(`ユーザー「${username}」を${actionLabel}しますか？`)) return;
+
+      try {
+        const { db, doc, updateDoc } = window.fbModules;
+        await updateDoc(doc(db, "users", targetUid), {
+          isFrozen: freezeState
+        });
+        alert(`ユーザー「${username}」を${actionLabel}しました。`);
+      } catch (e) {
+        alert("アカウント操作エラー（Firestoreルールが最新か確認してください）: " + e.message);
+      }
+    }
+
+    // ================= 社長アクション（受付切替・社員追加/削除・情報編集・会社削除） =================
     async function toggleInterviewStatus(sheetId, newStatus) {
       try {
         const { db, doc, updateDoc } = window.fbModules;
@@ -1603,6 +1924,50 @@
         });
       } catch (e) {
         alert("社員削除エラー: " + e.message);
+      }
+    }
+
+    async function updateCompanyInfo(sheetId) {
+      const companyName = document.getElementById(`edit-company-${sheetId}`).value.trim();
+      const presidentName = document.getElementById(`edit-president-${sheetId}`).value.trim();
+      const members = document.getElementById(`edit-members-${sheetId}`).value;
+      const email = document.getElementById(`edit-email-${sheetId}`).value.trim();
+      const activity = document.getElementById(`edit-activity-${sheetId}`).value.trim();
+      const salaryPreTax = Number(document.getElementById(`edit-pres-salary-${sheetId}`).value);
+      const empSalaryPreTax = Number(document.getElementById(`edit-emp-salary-${sheetId}`).value);
+
+      if (!companyName || !presidentName) {
+        alert("会社名と社長名は必須です。");
+        return;
+      }
+
+      try {
+        const { db, doc, updateDoc } = window.fbModules;
+        await updateDoc(doc(db, "establishment_sheets", sheetId), {
+          companyName,
+          presidentName,
+          members,
+          email,
+          activity,
+          salaryPreTax,
+          empSalaryPreTax
+        });
+        alert("会社設立シートの情報を更新しました！");
+      } catch (e) {
+        alert("更新エラーが発生しました: " + e.message);
+      }
+    }
+
+    async function deleteCompany(sheetId, companyName) {
+      const ok = confirm(`本当に「${companyName}」を削除しますか？\nこの操作は取り消せません。`);
+      if (!ok) return;
+
+      try {
+        const { db, doc, deleteDoc } = window.fbModules;
+        await deleteDoc(doc(db, "establishment_sheets", sheetId));
+        alert(`「${companyName}」を削除しました。`);
+      } catch (e) {
+        alert("削除エラーが発生しました: " + e.message);
       }
     }
 

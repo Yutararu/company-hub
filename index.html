@@ -305,6 +305,21 @@
       transform: translateY(-2px);
     }
 
+    .btn-cyber-primary-sm {
+      padding: 7px 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      background: linear-gradient(135deg, #0284c7, #4f46e5);
+      color: #ffffff;
+      transition: 0.2s;
+    }
+    .btn-cyber-primary-sm:hover {
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.5);
+    }
+
     .btn-cyber-outline {
       width: 100%;
       padding: 13px;
@@ -325,7 +340,7 @@
     }
 
     .btn-cyber-success {
-      padding: 8px 16px;
+      padding: 7px 14px;
       border: 1px solid rgba(16, 185, 129, 0.5);
       border-radius: 10px;
       font-size: 12px;
@@ -361,7 +376,7 @@
     }
 
     .btn-cyber-danger-sm {
-      padding: 8px 14px;
+      padding: 7px 14px;
       border: 1px solid rgba(239, 68, 68, 0.5);
       border-radius: 10px;
       font-size: 12px;
@@ -830,6 +845,19 @@
     }
     .member-remove-btn:hover { color: #ffffff; }
 
+    .applicant-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
     .toggle-status-box {
       display: flex;
       align-items: center;
@@ -964,7 +992,7 @@
     <main class="exhibition-view">
       <div class="exhibition-header">
         <h1>会社設立・活動ガイド</h1>
-        <p>会社の設立手順、入社方法、設立申請・共有および会社管理を行えます。</p>
+        <p>会社の設立手順、入社申請、設立申請・共有および会社管理を行えます。</p>
       </div>
 
       <div class="controls-container">
@@ -994,7 +1022,11 @@
     };
 
     window.DUMMY_DOMAIN = "@company-hub.local";
-    window.ADMIN_EMAIL = "2020018@seto-solan.ed.jp";
+    // 管理者権限を持つメールアドレス一覧
+    window.ADMIN_EMAILS = [
+      "2020018@seto-solan.ed.jp",
+      "2020007@seto-solan.ed.jp"
+    ];
 
     window.appState = {
       currentTab: 'found',
@@ -1042,7 +1074,7 @@
             }
 
             // 凍結チェック（管理者は除外）
-            if (isFrozen && schoolEmail !== window.ADMIN_EMAIL) {
+            if (isFrozen && !window.ADMIN_EMAILS.includes(schoolEmail)) {
               await signOut(auth);
               showAuthForm('login');
               showError('login-error', 'このアカウントは管理者によって凍結されています。');
@@ -1051,12 +1083,12 @@
 
             window.enterMainApp({ username, schoolEmail, dummyEmail: user.email, uid: user.uid });
 
-            // 自分自身の凍結状態をリアルタイム監視（使用中に凍結されたら即ログアウト）
+            // 自分自身の凍結状態をリアルタイム監視
             if (!unsubscribeMyUserDoc) {
               unsubscribeMyUserDoc = onSnapshot(doc(db, "users", user.uid), async (snap) => {
                 if (snap.exists()) {
                   const data = snap.data();
-                  if (data.isFrozen && data.schoolEmail !== window.ADMIN_EMAIL) {
+                  if (data.isFrozen && !window.ADMIN_EMAILS.includes(data.schoolEmail)) {
                     alert("あなたのアカウントは管理者によって凍結されました。ログアウトします。");
                     await handleLogout();
                   }
@@ -1247,7 +1279,7 @@
     // ================= メイン画面遷移 & ログアウト =================
     window.enterMainApp = function(userObj) {
       window.appState.currentUser = userObj;
-      const isAdmin = userObj.schoolEmail === window.ADMIN_EMAIL;
+      const isAdmin = isAdminUser();
       document.getElementById('current-user-badge').textContent = isAdmin
         ? `ADMIN: ${userObj.username}`
         : `USER: ${userObj.username}`;
@@ -1276,10 +1308,10 @@
 
     // ================= 特別タブ判定（5. 会社の管理 & ★ 管理者画面） =================
     function isAdminUser() {
-      return window.appState.currentUser?.schoolEmail === window.ADMIN_EMAIL;
+      const email = window.appState.currentUser?.schoolEmail || '';
+      return window.ADMIN_EMAILS.includes(email);
     }
 
-    // 承認済み（approved）の自社のみ管理可能
     function getMyApprovedCompanies() {
       const uid = window.appState.currentUser?.uid;
       if (!uid) return [];
@@ -1448,7 +1480,7 @@
         area.innerHTML =
           wrapCard('STEP 01 // SELECT', '', '会社を選ぶ！', `
             <ul>
-              <li>右側に書いてある<span class="highlight">「会社一覧表」</span>から会社を選ぶ！</li>
+              <li><span class="highlight">「4. 会社一覧表」</span>から面接受付中の会社を選ぶ！</li>
             </ul>
           `) +
           wrapCard('STEP 02 // APPLY', 'badge-indigo', '入社を希望！', `
@@ -1456,8 +1488,8 @@
             <ol>
               <li><strong>会社に入りたい場合</strong>
                 <ul>
-                  <li>まずは、その会社の社長に入社希望を出してください。</li>
-                  <li>会社によっては面接があります。</li>
+                  <li>まずは、「4. 会社一覧表」の<strong>「入社を申請する」</strong>ボタンから申請を送ってください。</li>
+                  <li>会社によっては面接があります。社長が許可すると社員として登録されます。</li>
                 </ul>
               </li>
             </ol>
@@ -1471,9 +1503,7 @@
         const defaultEmail = window.appState.currentUser?.schoolEmail || '';
         const defaultUser = window.appState.currentUser?.username || '';
 
-        // 自分の申請中シート
         const myPending = window.appState.sharedSheets.filter(s => s.ownerUid === myUid && s.status === 'pending');
-        // 承認済みの全会社
         const approvedSheets = window.appState.sharedSheets.filter(s => s.status !== 'pending');
 
         const pendingHtml = myPending.length === 0 ? '' : `
@@ -1559,11 +1589,35 @@
       } else if (tab === 'companies') {
         const sheets = window.appState.sharedSheets.filter(s => s.status !== 'pending');
         const rows = sheets.length === 0
-          ? `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:20px;">現在公開されている会社はありません。</td></tr>`
+          ? `<tr><td colspan="6" style="text-align:center; color:#94a3b8; padding:20px;">現在公開されている会社はありません。</td></tr>`
           : sheets.map(s => {
               const isOpen = s.acceptingInterviews !== false;
               const employees = Array.isArray(s.employees) ? s.employees : [];
+              const joinRequests = Array.isArray(s.joinRequests) ? s.joinRequests : [];
               const empNames = employees.map(e => e.username).join(', ');
+
+              const isOwner = s.ownerUid === myUid;
+              const isEmployee = employees.some(e => e.uid === myUid);
+              const hasApplied = joinRequests.some(r => r.uid === myUid);
+
+              let actionHtml = '';
+              if (isOwner) {
+                actionHtml = `<span style="font-size:12px; color:#c084fc; font-weight:700;">自社の社長</span>`;
+              } else if (isEmployee) {
+                actionHtml = `<span class="status-pill status-open">社員として所属中</span>`;
+              } else if (hasApplied) {
+                actionHtml = `
+                  <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start;">
+                    <span class="status-pill status-pending">入社申請中</span>
+                    <button class="btn-cyber-danger-sm" style="padding:3px 8px; font-size:11px;" onclick="cancelJoinRequest('${s.id}')">申請取消</button>
+                  </div>
+                `;
+              } else if (!isOpen) {
+                actionHtml = `<span style="font-size:12px; color:#64748b;">現在募集停止中</span>`;
+              } else {
+                actionHtml = `<button class="btn-cyber-primary-sm" onclick="applyToJoinCompany('${s.id}', '${escapeHtml(s.companyName)}')">入社を申請する</button>`;
+              }
+
               return `
                 <tr>
                   <td><strong>${escapeHtml(s.companyName)}</strong></td>
@@ -1575,12 +1629,13 @@
                       ${isOpen ? '面接受付中' : '受付停止中'}
                     </span>
                   </td>
+                  <td>${actionHtml}</td>
                 </tr>
               `;
             }).join('');
 
         area.innerHTML = wrapCard('DIRECTORY // COMPANIES', '', '会社一覧表', `
-          <div class="note-box">※ 設立許可された会社の一覧と、現在の面接受付状況がリアルタイムで表示されます。</div>
+          <div class="note-box">※ 面接受付中の会社へ「入社を申請する」と、その会社の社長の管理画面に申請が届きます。</div>
           <div style="overflow-x:auto;">
             <table>
               <thead>
@@ -1590,6 +1645,7 @@
                   <th>活動内容</th>
                   <th>所属社員</th>
                   <th>面接受付状況</th>
+                  <th>入社申請</th>
                 </tr>
               </thead>
               <tbody>${rows}</tbody>
@@ -1605,18 +1661,30 @@
           return;
         }
 
-        const allUsers = window.appState.allUsers;
-
         area.innerHTML = myCompanies.map(comp => {
           const isOpen = comp.acceptingInterviews !== false;
           const employees = Array.isArray(comp.employees) ? comp.employees : [];
-          const existingUids = new Set([myUid, ...employees.map(e => e.uid)]);
+          const joinRequests = Array.isArray(comp.joinRequests) ? comp.joinRequests : [];
 
-          const candidateUsers = allUsers.filter(u => !existingUids.has(u.uid) && !u.isFrozen);
-          const optionsHtml = candidateUsers.length === 0
-            ? `<option value="">追加可能なアカウントがありません</option>`
-            : `<option value="">-- 追加する社員アカウントを選択 --</option>` +
-              candidateUsers.map(u => `<option value="${escapeHtml(u.uid)}">${escapeHtml(u.username)} (${escapeHtml(u.schoolEmail || '')})</option>`).join('');
+          // 入社申請を送ってきた人だけを表示
+          const applicantsHtml = joinRequests.length === 0
+            ? `<div class="note-box" style="margin:6px 0;">現在、新しい入社申請はありません（「4. 会社一覧表」から申請した人のみここに表示されます）。</div>`
+            : joinRequests.map(req => `
+                <div class="applicant-row">
+                  <div>
+                    <strong style="color:#f8fafc;">${escapeHtml(req.username)}</strong>
+                    <span style="font-size:12px; color:#94a3b8; margin-left:6px;">(${escapeHtml(req.schoolEmail || '')})</span>
+                  </div>
+                  <div style="display:flex; gap:8px;">
+                    <button class="btn-cyber-success" onclick="approveJoinRequest('${comp.id}', '${req.uid}')">
+                      ✓ 入社許可（社員に追加）
+                    </button>
+                    <button class="btn-cyber-danger-sm" onclick="rejectJoinRequest('${comp.id}', '${req.uid}')">
+                      ✕ 却下
+                    </button>
+                  </div>
+                </div>
+              `).join('');
 
           const empTagsHtml = employees.length === 0
             ? `<div style="font-size:13px; color:#64748b; margin-top:6px;">現在所属している社員はいません。</div>`
@@ -1642,16 +1710,11 @@
               </button>
             </div>
 
-            <div class="form-group">
-              <label>登録アカウントから社員を追加</label>
-              <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                <select id="select-emp-${comp.id}" style="flex:1; min-width:200px;">
-                  ${optionsHtml}
-                </select>
-                <button class="btn-cyber-primary" style="width:auto; margin-top:0; padding:10px 18px;" onclick="addEmployee('${comp.id}')">
-                  社員に追加
-                </button>
+            <div style="margin-bottom:16px;">
+              <div style="font-size:13px; color:#fbbf24; font-weight:700; margin-bottom:8px;">
+                ▼ 入社申請が届いているアカウント（${joinRequests.length}件）
               </div>
+              ${applicantsHtml}
             </div>
 
             <div style="margin-bottom:12px;">
@@ -1741,7 +1804,7 @@
         const usersRows = usersList.length === 0
           ? `<tr><td colspan="4" style="text-align:center; color:#94a3b8;">登録ユーザーがいません。</td></tr>`
           : usersList.map(u => {
-              const isSelfAdmin = u.schoolEmail === window.ADMIN_EMAIL;
+              const isTargetAdmin = window.ADMIN_EMAILS.includes(u.schoolEmail || '');
               const frozen = Boolean(u.isFrozen);
               return `
                 <tr>
@@ -1753,7 +1816,7 @@
                     </span>
                   </td>
                   <td>
-                    ${isSelfAdmin
+                    ${isTargetAdmin
                       ? '<span style="font-size:11px; color:#94a3b8;">管理者アカウント</span>'
                       : `<button class="${frozen ? 'btn-cyber-success' : 'btn-cyber-danger-sm'}" onclick="toggleUserFreeze('${u.uid}', ${!frozen}, '${escapeHtml(u.username)}')">
                           ${frozen ? '凍結を解除' : 'アカウント凍結'}
@@ -1806,9 +1869,10 @@
         salaryPreTax: Number(document.getElementById('in-pres-salary').value),
         ownerUid: uid,
         createdBy: window.appState.currentUser?.username || 'unknown',
-        status: 'pending', // 初期状態は「承認待ち」
+        status: 'pending',
         acceptingInterviews: true,
         employees: [],
+        joinRequests: [],
         createdAt: Date.now()
       };
 
@@ -1825,6 +1889,56 @@
         alert("会社設立の申請を管理者に送信しました！許可されるまでお待ちください。");
       } catch (e) {
         alert("送信エラーが発生しました: " + e.message);
+      }
+    }
+
+    // ================= 入社申請アクション（一般ユーザー側） =================
+    async function applyToJoinCompany(sheetId, companyName) {
+      const user = window.appState.currentUser;
+      if (!user) return;
+
+      const comp = window.appState.sharedSheets.find(s => s.id === sheetId);
+      if (!comp) return;
+
+      const currentRequests = Array.isArray(comp.joinRequests) ? comp.joinRequests : [];
+      if (currentRequests.some(r => r.uid === user.uid)) return;
+
+      const updatedRequests = [...currentRequests, {
+        uid: user.uid,
+        username: user.username,
+        schoolEmail: user.schoolEmail || '',
+        appliedAt: Date.now()
+      }];
+
+      try {
+        const { db, doc, updateDoc } = window.fbModules;
+        await updateDoc(doc(db, "establishment_sheets", sheetId), {
+          joinRequests: updatedRequests
+        });
+        alert(`「${companyName}」に入社申請を送りました！社長の承認をお待ちください。`);
+      } catch (e) {
+        alert("入社申請エラー（Firestoreルールが最新か確認してください）: " + e.message);
+      }
+    }
+
+    async function cancelJoinRequest(sheetId) {
+      const uid = window.appState.currentUser?.uid;
+      if (!uid) return;
+
+      const comp = window.appState.sharedSheets.find(s => s.id === sheetId);
+      if (!comp) return;
+
+      const currentRequests = Array.isArray(comp.joinRequests) ? comp.joinRequests : [];
+      const updatedRequests = currentRequests.filter(r => r.uid !== uid);
+
+      try {
+        const { db, doc, updateDoc } = window.fbModules;
+        await updateDoc(doc(db, "establishment_sheets", sheetId), {
+          joinRequests: updatedRequests
+        });
+        alert("入社申請を取り消しました。");
+      } catch (e) {
+        alert("申請取消エラー: " + e.message);
       }
     }
 
@@ -1863,11 +1977,11 @@
         });
         alert(`ユーザー「${username}」を${actionLabel}しました。`);
       } catch (e) {
-        alert("アカウント操作エラー（Firestoreルールが最新か確認してください）: " + e.message);
+        alert("アカウント操作エラー: " + e.message);
       }
     }
 
-    // ================= 社長アクション（受付切替・社員追加/削除・情報編集・会社削除） =================
+    // ================= 社長アクション（受付切替・入社申請の許可/却下・社員削除・情報編集・会社削除） =================
     async function toggleInterviewStatus(sheetId, newStatus) {
       try {
         const { db, doc, updateDoc } = window.fbModules;
@@ -1879,34 +1993,50 @@
       }
     }
 
-    async function addEmployee(sheetId) {
-      const selectEl = document.getElementById(`select-emp-${sheetId}`);
-      const targetUid = selectEl?.value;
-      if (!targetUid) {
-        alert("追加する社員アカウントを選択してください。");
-        return;
-      }
-
-      const targetUser = window.appState.allUsers.find(u => u.uid === targetUid);
+    async function approveJoinRequest(sheetId, targetUid) {
       const comp = window.appState.sharedSheets.find(s => s.id === sheetId);
-      if (!targetUser || !comp) return;
+      if (!comp) return;
+
+      const currentRequests = Array.isArray(comp.joinRequests) ? comp.joinRequests : [];
+      const applicant = currentRequests.find(r => r.uid === targetUid);
+      if (!applicant) return;
 
       const currentEmps = Array.isArray(comp.employees) ? comp.employees : [];
-      if (currentEmps.some(e => e.uid === targetUid)) return;
-
-      const updatedEmps = [...currentEmps, {
-        uid: targetUser.uid,
-        username: targetUser.username,
-        schoolEmail: targetUser.schoolEmail || ''
-      }];
+      const updatedRequests = currentRequests.filter(r => r.uid !== targetUid);
+      const updatedEmps = currentEmps.some(e => e.uid === targetUid)
+        ? currentEmps
+        : [...currentEmps, {
+            uid: applicant.uid,
+            username: applicant.username,
+            schoolEmail: applicant.schoolEmail || ''
+          }];
 
       try {
         const { db, doc, updateDoc } = window.fbModules;
         await updateDoc(doc(db, "establishment_sheets", sheetId), {
+          joinRequests: updatedRequests,
           employees: updatedEmps
         });
+        alert(`${applicant.username} さんを社員に追加しました！`);
       } catch (e) {
-        alert("社員追加エラー: " + e.message);
+        alert("入社許可エラー: " + e.message);
+      }
+    }
+
+    async function rejectJoinRequest(sheetId, targetUid) {
+      const comp = window.appState.sharedSheets.find(s => s.id === sheetId);
+      if (!comp) return;
+
+      const currentRequests = Array.isArray(comp.joinRequests) ? comp.joinRequests : [];
+      const updatedRequests = currentRequests.filter(r => r.uid !== targetUid);
+
+      try {
+        const { db, doc, updateDoc } = window.fbModules;
+        await updateDoc(doc(db, "establishment_sheets", sheetId), {
+          joinRequests: updatedRequests
+        });
+      } catch (e) {
+        alert("却下処理エラー: " + e.message);
       }
     }
 

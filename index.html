@@ -1171,18 +1171,22 @@
         const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
         const {
           getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
-          onAuthStateChanged, updateProfile, updateEmail, updatePassword,
+          onAuthStateChanged, updateProfile, updatePassword,
           EmailAuthProvider, reauthenticateWithCredential
         } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
-const {
+        const {
           getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
           onSnapshot, query, where, orderBy
         } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
         window.fbModules = {
           auth, db,
           createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
-          updateProfile, updateEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential,
+          updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential,
           collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy
         };
 
@@ -1378,7 +1382,7 @@ const {
       okEl.style.display = 'block';
     }
 
-    // ユーザーネーム変更
+    // ユーザーネーム変更（updateEmailを使わずFirestoreとdisplayNameを更新）
     async function handleChangeUsername() {
       clearSettingsMessages();
       const user = window.appState.currentUser;
@@ -1403,7 +1407,7 @@ const {
         return;
       }
 
-try {
+      try {
         const {
           auth, db, EmailAuthProvider, reauthenticateWithCredential,
           updateProfile, doc, updateDoc, collection, query, where, getDocs
@@ -1422,7 +1426,7 @@ try {
         const credential = EmailAuthProvider.credential(fbUser.email, currentPassword);
         await reauthenticateWithCredential(fbUser, credential);
 
-        // 表示名とFirestoreのユーザー情報を更新（updateEmailは呼ばない）
+        // 表示名とFirestoreのユーザー情報を更新
         await updateProfile(fbUser, { displayName: newUsername });
         await updateDoc(doc(db, "users", user.uid), {
           username: newUsername
@@ -1454,7 +1458,6 @@ try {
         }
 
         window.appState.currentUser.username = newUsername;
-        window.appState.currentUser.dummyEmail = newDummyEmail;
         const isAdmin = isAdminUser();
         document.getElementById('current-user-badge').textContent = isAdmin
           ? `ADMIN: ${newUsername}`
@@ -1468,8 +1471,6 @@ try {
       } catch (err) {
         if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
           showSettingsError('現在のパスワードが正しくありません。');
-        } else if (err.code === 'auth/email-already-in-use') {
-          showSettingsError('このユーザーネームは既に他の人に使用されています。別の名前をお試しください。');
         } else {
           showSettingsError('ユーザーネーム変更エラー: ' + err.message);
         }
@@ -1534,10 +1535,17 @@ try {
         return;
       }
 
-      const dummyEmail = `${username}${window.DUMMY_DOMAIN}`;
-
       try {
-        const { auth, db, createUserWithEmailAndPassword, updateProfile, doc, setDoc } = window.fbModules;
+        const { auth, db, createUserWithEmailAndPassword, updateProfile, doc, setDoc, collection, query, where, getDocs } = window.fbModules;
+
+        const dupQuery = query(collection(db, "users"), where("username", "==", username));
+        const dupSnap = await getDocs(dupQuery);
+        if (!dupSnap.empty) {
+          showError('signup-error', 'このユーザーネームは既に使用されています。別のユーザーネームをお試しください。');
+          return;
+        }
+
+        const dummyEmail = `${username}${window.DUMMY_DOMAIN}`;
         const userCred = await createUserWithEmailAndPassword(auth, dummyEmail, password);
         await updateProfile(userCred.user, { displayName: username });
 
@@ -1549,7 +1557,7 @@ try {
           createdAt: Date.now()
         });
 
-        enterMainApp({ username, schoolEmail: realEmail, uid: userCred.user.uid });
+        enterMainApp({ username, schoolEmail: realEmail, dummyEmail, uid: userCred.user.uid });
       } catch (err) {
         if (err.code === 'auth/email-already-in-use') {
           showError('signup-error', 'このユーザーネームは既に使用されています。別のユーザーネームをお試しください。');
@@ -1572,8 +1580,7 @@ try {
 
       try {
         const { auth, db, signInWithEmailAndPassword, collection, query, where, getDocs } = window.fbModules;
-        
-        // Firestoreから現在のユーザーネームに一致するアカウントの内部メールを検索
+
         let targetDummyEmail = `${username}${window.DUMMY_DOMAIN}`;
         const q = query(collection(db, "users"), where("username", "==", username));
         const snap = await getDocs(q);

@@ -1725,7 +1725,7 @@
       const username = document.getElementById('signup-username').value.trim();
       const password = document.getElementById('signup-password').value;
 
-      const schoolEmailRegex = /^2020[a-zA-Z0-9._-]+@seto-solan\.ed\.jp$/;
+      const schoolEmailRegex = /^(2020[a-zA-Z0-9._-]+|kyamashita)@seto-solan\.ed\.jp$/;
       if (!schoolEmailRegex.test(realEmail)) {
         showError('signup-error', 'メールアドレスの形式が正しくありません。「2020〇〇〇@seto-solan.ed.jp」の形式で入力してください。');
         return;

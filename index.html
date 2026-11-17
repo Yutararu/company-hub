@@ -1006,6 +1006,134 @@
       }
       .form-row-2 { grid-template-columns: 1fr; }
     }
+
+    /* ================= お知らせ（通知）機能 ================= */
+    .notice-bell-btn {
+      position: relative;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      color: #7dd3fc;
+      padding: 5px 14px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .notice-bell-btn:hover {
+      background: rgba(56, 189, 248, 0.3);
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+    }
+    .notice-bell-btn { display: inline-flex; align-items: center; gap: 6px; }
+    .notice-bell-icon { display: inline-flex; width: 14px; height: 14px; }
+    .notice-bell-icon svg { width: 14px; height: 14px; }
+    .notice-badge {
+      position: absolute;
+      top: -7px;
+      right: -6px;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      border-radius: 9px;
+      background: #ef4444;
+      color: #fff;
+      font-size: 10px;
+      line-height: 18px;
+      text-align: center;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.7);
+    }
+    .notice-modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      z-index: 110;
+      background: rgba(2, 6, 23, 0.82);
+      backdrop-filter: blur(8px);
+      overflow-y: auto;
+    }
+    .notice-modal.active { display: flex; animation: fadeIn 0.3s ease; }
+    .notice-panel {
+      width: 100%;
+      max-width: 560px;
+      max-height: 88vh;
+      overflow-y: auto;
+      background: rgba(30, 41, 59, 0.97);
+      border: 1px solid #38bdf8;
+      border-radius: 22px;
+      padding: 28px 26px;
+      position: relative;
+      box-shadow: 0 0 40px rgba(56, 189, 248, 0.25), 0 20px 50px rgba(0, 0, 0, 0.7);
+      text-align: left;
+    }
+    .notice-item {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    .notice-item.is-new { border-color: rgba(56, 189, 248, 0.7); }
+    .notice-item-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #7dd3fc;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .notice-new-pill {
+      font-family: 'Orbitron', monospace;
+      font-size: 10px;
+      background: #ef4444;
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+    .notice-date { font-size: 11px; color: #64748b; margin-bottom: 10px; }
+    .notice-body { font-size: 14px; color: #e2e8f0; line-height: 1.75; white-space: pre-wrap; word-break: break-word; }
+    .notice-files { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .notice-files img { max-width: 100%; border-radius: 10px; border: 1px solid #334155; display: block; }
+    .notice-file-link {
+      display: inline-block;
+      padding: 8px 12px;
+      border: 1px solid #38bdf8;
+      border-radius: 10px;
+      color: #7dd3fc;
+      background: rgba(56, 189, 248, 0.08);
+      font-size: 12px;
+      text-decoration: none;
+      word-break: break-all;
+    }
+    .notice-file-link:hover { background: rgba(56, 189, 248, 0.22); color: #fff; }
+    .notice-popup-nav { display: flex; gap: 10px; margin-top: 16px; }
+    .notice-popup-nav button { flex: 1; }
+    .notice-empty { text-align: center; color: #94a3b8; font-size: 14px; padding: 24px 0; }
+    .notice-form textarea {
+      width: 100%;
+      min-height: 130px;
+      padding: 11px 14px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      color: #f8fafc;
+      font-size: 14px;
+      outline: none;
+      resize: vertical;
+      line-height: 1.6;
+    }
+    .notice-form textarea:focus { border-color: #38bdf8; box-shadow: 0 0 12px rgba(56, 189, 248, 0.25); }
+    .notice-form input[type="file"] { padding: 8px; font-size: 12px; }
+    .card-grid.admin-view > .exhibit-card:nth-child(4) {
+      grid-column: 1 / -1;
+      grid-row: 3;
+      min-width: 0;
+    }
   </style>
 </head>
 <body>
@@ -1143,6 +1271,30 @@
     </div>
   </div>
 
+  <!-- お知らせ：起動時ポップアップ -->
+  <div class="notice-modal" id="notice-popup-modal">
+    <div class="notice-panel">
+      <button class="modal-close-btn" onclick="closeNoticePopup()" title="閉じる">×</button>
+      <div class="gateway-badge" style="margin-bottom:10px;">INFORMATION</div>
+      <h2 style="font-size:20px; margin-bottom:14px;">お知らせ <span id="notice-popup-counter" style="font-size:12px; color:#94a3b8;"></span></h2>
+      <div id="notice-popup-body"></div>
+      <div class="notice-popup-nav">
+        <button class="btn-cyber-outline" id="notice-popup-next" style="display:none;" onclick="noticePopupNext()">次のお知らせ</button>
+        <button class="btn-cyber-primary" onclick="closeNoticePopup()">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- お知らせ：通知一覧 -->
+  <div class="notice-modal" id="notice-list-modal">
+    <div class="notice-panel">
+      <button class="modal-close-btn" onclick="closeNoticeList()" title="閉じる">×</button>
+      <div class="gateway-badge" style="margin-bottom:10px;">NOTIFICATIONS</div>
+      <h2 style="font-size:20px; margin-bottom:14px;">通知（お知らせ一覧）</h2>
+      <div id="notice-list-body"></div>
+    </div>
+  </div>
+
   <!-- 3. メイン画面 -->
   <div id="app-viewport">
     <header>
@@ -1158,6 +1310,7 @@
         </div>
         <div class="digital-clock" id="digital-clock">00:00:00</div>
         <button class="account-settings-btn" onclick="openAccountSettings()">アカウント設定</button>
+        <button class="notice-bell-btn" id="notice-bell-btn" onclick="openNoticeList()" title="お知らせ"><span class="notice-bell-icon" id="notice-bell-icon"></span>通知<span class="notice-badge" id="notice-badge" style="display:none;">0</span></button>
       </div>
     </header>
 
@@ -1235,6 +1388,7 @@
         let unsubscribeSheets = null;
         let unsubscribeUsers = null;
         let unsubscribeMyUserDoc = null;
+        let unsubscribeNotices = null;
 
         onAuthStateChanged(auth, async (user) => {
           if (user) {
@@ -1294,7 +1448,19 @@
                 }
               });
             }
+
+            if (!unsubscribeNotices) {
+              const nq = query(collection(db, "notices"), orderBy("createdAt", "desc"));
+              unsubscribeNotices = onSnapshot(nq, (snapshot) => {
+                window.noticeState.list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                window.onNoticesUpdated();
+              }, (err) => {
+                console.warn("お知らせ取得エラー:", err);
+              });
+            }
           } else {
+            if (unsubscribeNotices) { unsubscribeNotices(); unsubscribeNotices = null; }
+            if (window.resetNoticeState) window.resetNoticeState();
             if (unsubscribeSheets) { unsubscribeSheets(); unsubscribeSheets = null; }
             if (unsubscribeUsers) { unsubscribeUsers(); unsubscribeUsers = null; }
             if (unsubscribeMyUserDoc) { unsubscribeMyUserDoc(); unsubscribeMyUserDoc = null; }
@@ -2300,7 +2466,8 @@
           wrapCard('ADMIN // COMPANY CONTROL', 'badge-red', `会社管理・削除（${allCompanies.length}件）`, `
             <div class="note-box">※ 会社を削除すると会社一覧からも消えます。この操作は取り消せません。申請中・公開中の会社が対象です。</div>
             ${allCompaniesHtml}
-          `);
+          `) +
+          wrapCard('ADMIN // NOTICES', 'badge-red', 'お知らせ配信（全ユーザーへ送信）', renderAdminNoticeForm());
       }
     }
 
@@ -2640,6 +2807,285 @@
         const { db, doc, deleteDoc } = window.fbModules;
         await deleteDoc(doc(db, "establishment_sheets", sheetId));
         alert(`「${companyName}」を削除しました。`);
+      } catch (e) {
+        alert("削除エラーが発生しました: " + e.message);
+      }
+    }
+
+    // ================= お知らせ（通知）機能 =================
+    // 通知ベルアイコン（SVGをJavaScriptで生成）
+    (function buildNoticeBellIcon() {
+      const holder = document.getElementById('notice-bell-icon');
+      if (!holder) return;
+      const NS = 'http://www.w3.org/2000/svg';
+      const svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 24 24');
+      svg.setAttribute('fill', 'none');
+      svg.setAttribute('stroke', 'currentColor');
+      svg.setAttribute('stroke-width', '2');
+      svg.setAttribute('stroke-linecap', 'round');
+      svg.setAttribute('stroke-linejoin', 'round');
+      const body = document.createElementNS(NS, 'path');
+      body.setAttribute('d', 'M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9');
+      const clapper = document.createElementNS(NS, 'path');
+      clapper.setAttribute('d', 'M13.7 21a2 2 0 0 1-3.4 0');
+      svg.appendChild(body);
+      svg.appendChild(clapper);
+      holder.appendChild(svg);
+    })();
+
+    window.noticeState = { list: [], lastSeen: null, popupShown: false, popupItems: [], popupIndex: 0 };
+    window.noticeDraft = { title: '', body: '', files: [] };
+    const NOTICE_MAX_FILE_BYTES = 700 * 1024; // Firestore 1ドキュメント上限(1MiB)に収めるため、添付合計の上限
+
+    function noticeSeenKey() {
+      return 'noticeLastSeen_' + (window.appState.currentUser?.uid || '');
+    }
+
+    function formatNoticeDate(ts) {
+      if (!ts) return '';
+      const d = new Date(ts);
+      return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    }
+
+    function renderNoticeItem(n, isNew) {
+      const files = (n.attachments || []).map(f => {
+        const name = escapeHtml(f.name || 'file');
+        if ((f.type || '').startsWith('image/')) {
+          return `<div><img src="${f.data}" alt="${name}"><a class="notice-file-link" style="margin-top:6px;" href="${f.data}" download="${name}">${name} を保存</a></div>`;
+        }
+        return `<a class="notice-file-link" href="${f.data}" download="${name}">添付: ${name}（${Math.ceil((f.size || 0) / 1024)}KB）</a>`;
+      }).join('');
+      return `
+        <div class="notice-item ${isNew ? 'is-new' : ''}">
+          <div class="notice-item-title">${escapeHtml(n.title)}${isNew ? '<span class="notice-new-pill">NEW</span>' : ''}</div>
+          <div class="notice-date">${formatNoticeDate(n.createdAt)}${n.createdBy ? ' ／ ' + escapeHtml(n.createdBy) : ''}</div>
+          <div class="notice-body">${escapeHtml(n.body)}</div>
+          ${files ? `<div class="notice-files">${files}</div>` : ''}
+        </div>`;
+    }
+
+    function getUnreadNotices() {
+      const seen = window.noticeState.lastSeen || 0;
+      return window.noticeState.list.filter(n => (n.createdAt || 0) > seen);
+    }
+
+    function updateNoticeBadge() {
+      const badge = document.getElementById('notice-badge');
+      if (!badge) return;
+      const count = getUnreadNotices().length;
+      badge.textContent = count > 99 ? '99+' : String(count);
+      badge.style.display = count > 0 ? 'block' : 'none';
+    }
+
+    async function markNoticesSeen(ts) {
+      const uid = window.appState.currentUser?.uid;
+      if (!uid) return;
+      const current = window.noticeState.lastSeen || 0;
+      if (ts <= current) return;
+      window.noticeState.lastSeen = ts;
+      updateNoticeBadge();
+      try { localStorage.setItem(noticeSeenKey(), String(ts)); } catch (e) {}
+      try {
+        const { db, doc, setDoc } = window.fbModules;
+        await setDoc(doc(db, "users", uid), { lastSeenNoticeAt: ts }, { merge: true });
+      } catch (e) {
+        console.warn("お知らせ既読の保存に失敗:", e);
+      }
+    }
+
+    window.onNoticesUpdated = async function() {
+      const st = window.noticeState;
+      const uid = window.appState.currentUser?.uid;
+      if (!uid) return;
+
+      if (st.lastSeen === null) {
+        let seen = 0;
+        try {
+          const { db, doc, getDoc } = window.fbModules;
+          const snap = await getDoc(doc(db, "users", uid));
+          if (snap.exists()) seen = Number(snap.data().lastSeenNoticeAt) || 0;
+        } catch (e) { console.warn("既読情報の取得に失敗:", e); }
+        try { seen = Math.max(seen, Number(localStorage.getItem(noticeSeenKey())) || 0); } catch (e) {}
+        st.lastSeen = seen;
+      }
+
+      updateNoticeBadge();
+
+      if (document.getElementById('notice-list-modal').classList.contains('active')) renderNoticeList();
+      if (window.appState.currentTab === 'admin') renderView();
+
+      // 起動（ログイン）後の最初の読み込み時だけ、未読のお知らせをポップアップ表示
+      if (!st.popupShown) {
+        st.popupShown = true;
+        const unread = getUnreadNotices();
+        if (unread.length > 0) openNoticePopup(unread);
+      }
+    };
+
+    window.resetNoticeState = function() {
+      window.noticeState = { list: [], lastSeen: null, popupShown: false, popupItems: [], popupIndex: 0 };
+      document.getElementById('notice-popup-modal')?.classList.remove('active');
+      document.getElementById('notice-list-modal')?.classList.remove('active');
+      updateNoticeBadge();
+    };
+
+    // ---- 起動時ポップアップ ----
+    function openNoticePopup(items) {
+      const st = window.noticeState;
+      st.popupItems = items;
+      st.popupIndex = 0;
+      renderNoticePopup();
+      document.getElementById('notice-popup-modal').classList.add('active');
+    }
+
+    function renderNoticePopup() {
+      const st = window.noticeState;
+      const total = st.popupItems.length;
+      document.getElementById('notice-popup-body').innerHTML = renderNoticeItem(st.popupItems[st.popupIndex], false);
+      document.getElementById('notice-popup-counter').textContent = total > 1 ? `(${st.popupIndex + 1} / ${total})` : '';
+      document.getElementById('notice-popup-next').style.display = (total > 1 && st.popupIndex < total - 1) ? 'block' : 'none';
+    }
+
+    function noticePopupNext() {
+      const st = window.noticeState;
+      if (st.popupIndex < st.popupItems.length - 1) {
+        st.popupIndex++;
+        renderNoticePopup();
+        document.querySelector('#notice-popup-modal .notice-panel').scrollTop = 0;
+      }
+    }
+
+    function closeNoticePopup() {
+      const st = window.noticeState;
+      document.getElementById('notice-popup-modal').classList.remove('active');
+      const newest = Math.max(0, ...st.popupItems.map(n => n.createdAt || 0));
+      st.popupItems = [];
+      markNoticesSeen(newest);
+    }
+
+    // ---- 通知一覧（右上の通知ボタン） ----
+    function renderNoticeList() {
+      const list = window.noticeState.list;
+      const seen = window.noticeState.lastSeen || 0;
+      document.getElementById('notice-list-body').innerHTML = list.length === 0
+        ? '<div class="notice-empty">現在、お知らせはありません。</div>'
+        : list.map(n => renderNoticeItem(n, (n.createdAt || 0) > seen)).join('');
+    }
+
+    function openNoticeList() {
+      renderNoticeList();
+      document.getElementById('notice-list-modal').classList.add('active');
+      // 一覧を開いた時点で既読にする（今回表示分のNEWマークは残る）
+      const newest = Math.max(0, ...window.noticeState.list.map(n => n.createdAt || 0));
+      markNoticesSeen(newest);
+    }
+
+    function closeNoticeList() {
+      document.getElementById('notice-list-modal').classList.remove('active');
+    }
+
+    // ---- 管理者：お知らせ作成・送信 ----
+    function renderAdminNoticeForm() {
+      const d = window.noticeDraft;
+      const total = d.files.reduce((s, f) => s + f.size, 0);
+      const filesHtml = d.files.length === 0 ? '' : d.files.map((f, i) => `
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12px; color:#cbd5e1; margin-top:6px;">
+          <span>${escapeHtml(f.name)}（${Math.ceil(f.size / 1024)}KB）</span>
+          <button class="btn-cyber-danger-sm" onclick="removeNoticeFile(${i})">外す</button>
+        </div>`).join('');
+      const past = window.noticeState.list.length === 0
+        ? '<div class="note-box">送信済みのお知らせはまだありません。</div>'
+        : window.noticeState.list.map(n => `
+            <div class="shared-item">
+              <div class="shared-item-header">
+                <span>${escapeHtml(n.title)}</span>
+                <button class="btn-cyber-danger-sm" onclick="deleteNotice('${n.id}', '${escapeHtml(n.title)}')">削除</button>
+              </div>
+              <div style="font-size:12px; color:#94a3b8;">${formatNoticeDate(n.createdAt)} ／ 添付 ${(n.attachments || []).length}件</div>
+            </div>`).join('');
+      return `
+        <div class="note-box">※ 送信すると、全ユーザーが次回起動（ログイン）時にポップアップで見られます。閉じた後も右上の「通知」からいつでも確認できます。</div>
+        <div class="notice-form">
+          <div class="form-group">
+            <label>タイトル</label>
+            <input type="text" id="notice-in-title" maxlength="80" value="${escapeHtml(d.title)}" oninput="window.noticeDraft.title=this.value" placeholder="例：メンテナンスのお知らせ">
+          </div>
+          <div class="form-group">
+            <label>本文</label>
+            <textarea id="notice-in-body" oninput="window.noticeDraft.body=this.value" placeholder="お知らせの内容を入力">${escapeHtml(d.body)}</textarea>
+          </div>
+          <div class="form-group">
+            <label>添付ファイル（任意・合計${Math.floor(NOTICE_MAX_FILE_BYTES / 1024)}KBまで／現在 ${Math.ceil(total / 1024)}KB）</label>
+            <input type="file" id="notice-in-files" multiple onchange="addNoticeFiles(this)">
+            ${filesHtml}
+          </div>
+          <button class="btn-cyber-primary" onclick="sendNotice()">お知らせを全ユーザーに送信</button>
+        </div>
+        <div class="section-divider">
+          <div class="settings-section-title" style="margin-bottom:10px;">送信済みのお知らせ（${window.noticeState.list.length}件）</div>
+          ${past}
+        </div>`;
+    }
+
+    function addNoticeFiles(input) {
+      const files = Array.from(input.files || []);
+      if (files.length === 0) return;
+      const d = window.noticeDraft;
+      let total = d.files.reduce((s, f) => s + f.size, 0);
+      Promise.all(files.map(file => new Promise(resolve => {
+        if (total + file.size > NOTICE_MAX_FILE_BYTES) {
+          alert(`ファイルの上限は${Math.floor(NOTICE_MAX_FILE_BYTES / 1024)}KBまでです。\n（追加できなかったファイル: ${file.name}）`);
+          return resolve(null);
+        }
+        total += file.size;
+        const reader = new FileReader();
+        reader.onload = () => resolve({ name: file.name, type: file.type || 'application/octet-stream', size: file.size, data: reader.result });
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(file);
+      }))).then(results => {
+        results.filter(Boolean).forEach(r => d.files.push(r));
+        renderView();
+      });
+    }
+
+    function removeNoticeFile(i) {
+      window.noticeDraft.files.splice(i, 1);
+      renderView();
+    }
+
+    async function sendNotice() {
+      if (!isAdminUser()) { alert("管理者のみ実行できます。"); return; }
+      const d = window.noticeDraft;
+      const title = (d.title || '').trim();
+      const body = (d.body || '').trim();
+      if (!title || !body) { alert("タイトルと本文を入力してください。"); return; }
+      if (!window.fbModules) { alert("Firebaseに接続できていません。"); return; }
+      if (!confirm(`「${title}」を全ユーザーに送信します。よろしいですか？`)) return;
+      try {
+        const { db, collection, addDoc } = window.fbModules;
+        const createdAt = Date.now();
+        await addDoc(collection(db, "notices"), {
+          title, body,
+          attachments: d.files.map(f => ({ name: f.name, type: f.type, size: f.size, data: f.data })),
+          createdAt,
+          createdBy: window.appState.currentUser?.username || ''
+        });
+        window.noticeDraft = { title: '', body: '', files: [] };
+        markNoticesSeen(createdAt);
+        alert("お知らせを送信しました。");
+        renderView();
+      } catch (e) {
+        alert("送信エラーが発生しました: " + e.message);
+      }
+    }
+
+    async function deleteNotice(id, title) {
+      if (!isAdminUser()) { alert("管理者のみ実行できます。"); return; }
+      if (!confirm(`お知らせ「${title}」を削除しますか？（全ユーザーの通知からも消えます）`)) return;
+      try {
+        const { db, doc, deleteDoc } = window.fbModules;
+        await deleteDoc(doc(db, "notices", id));
       } catch (e) {
         alert("削除エラーが発生しました: " + e.message);
       }
